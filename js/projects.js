@@ -784,7 +784,6 @@ function initProjects() {
     renderProjectList();
   });
 
-  document.getElementById('btn-retour-projets').addEventListener('click', showLandingPage);
   document.getElementById('brand').addEventListener('click', showLandingPage);
 
   document.getElementById('btn-reprendre-projet')?.addEventListener('click', function () {
