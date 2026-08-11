@@ -2683,3 +2683,167 @@
     border-radius: var(--r);
     cursor: pointer;
   }
+
+  /* ============================================================ */
+  /* Module 4 — Carte réseau (prototype)                          */
+  /* ============================================================ */
+  .m4-proto-badge {
+    display: inline-block;
+    background: var(--warn);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    vertical-align: middle;
+    margin-left: 10px;
+  }
+
+  /* Card contenant la carte — padding nul pour bord à bord */
+  .m4-card { padding: 0; overflow: hidden; }
+
+  /* Conteneur Leaflet */
+  #m4-map {
+    width: 100%;
+    height: 520px;
+    background: var(--panel-2);
+    display: block;
+  }
+  #m4-map.m4-cursor-crosshair { cursor: crosshair; }
+  #m4-map.m4-cursor-delete    { cursor: not-allowed; }
+
+  .m4-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    gap: 8px;
+    background: #fff;
+    border-top: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  .m4-toolbar-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .m4-toolbar-bg {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+  .m4-toolbar-bg label { white-space: nowrap; }
+  .m4-tile-select { width: auto; height: 30px; }
+
+  /* Bouton de mode actif */
+  .m4-mode-btn.active {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+  }
+
+  /* ── Marqueur Leaflet personnalisé ─────────────────────────────────── */
+  .m4-marker {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 2.5px solid rgba(255,255,255,.85);
+    box-shadow: 0 2px 7px rgba(20,24,33,.35);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
+    box-sizing: border-box;
+  }
+  .m4-marker:hover { transform: scale(1.12); box-shadow: 0 4px 12px rgba(20,24,33,.40); }
+  .m4-marker--selected {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+    transform: scale(1.18);
+    box-shadow: 0 4px 14px rgba(20,24,33,.5);
+  }
+  .m4-marker-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: .5px;
+    pointer-events: none;
+    user-select: none;
+    text-shadow: 0 1px 2px rgba(20,24,33,.45);
+  }
+
+  /* ── Panneau d'édition SST ─────────────────────────────────────────── */
+  .m4-edit-panel { margin-top: 16px; }
+
+  /* ── Marqueur en mode snap (accrochage polyligne) ───────────────────── */
+  .m4-marker--snap {
+    outline: 3px solid #facc15;
+    outline-offset: 2px;
+    transform: scale(1.22) !important;
+    box-shadow: 0 0 0 5px rgba(250,204,21,.30), 0 4px 14px rgba(20,24,33,.5) !important;
+  }
+
+  /* ── Bandeau info tracé polyligne ────────────────────────────────────── */
+  .m4-trace-hint {
+    font-size: 12px;
+    color: var(--ink-3);
+    background: var(--panel-2);
+    border-top: 1px solid var(--line);
+    padding: 6px 16px;
+    text-align: center;
+  }
+
+  /* ── Section récapitulatif dimensionnement ───────────────────────────── */
+  .m4-recap-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .m4-recap-tdepart { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-3); }
+  .m4-recap-tdepart label { white-space: nowrap; }
+  .m4-recap-tdepart input { width: 72px; }
+  .m4-recap-error {
+    background: var(--warn-soft);
+    border: 1px solid var(--warn);
+    border-radius: var(--r);
+    color: var(--warn);
+    padding: 10px 14px;
+    font-size: 12.5px;
+    margin-bottom: 10px;
+  }
+  .m4-recap-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .m4-recap-table th,
+  .m4-recap-table td {
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--line-2);
+    text-align: left;
+  }
+  .m4-recap-table th {
+    background: var(--panel-2);
+    font-weight: 600;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--ink-3);
+  }
+  .m4-col-r { text-align: right !important; }
+  .m4-recap-total td {
+    font-weight: 700;
+    border-top: 2px solid var(--line);
+    border-bottom: none;
+  }
+  .m4-recap-subtitle {
+    margin: 20px 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .leaflet-tooltip.m4-label-dn {
+    background: rgba(255,255,255,.92);
+    border: 1px solid var(--ink-2);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-2);
+    white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(20,24,33,.20);
+  }
+  .leaflet-tooltip.m4-label-dn::before { display: none; }

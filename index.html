@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=1440">
 <title>FLUX — Module 2 · Estimation &amp; dimensionnement · SST-001</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body>
 
@@ -133,8 +134,8 @@
     <span class="step-num">M2</span>
     <span class="step-lbl">Puissances</span>
   </a>
-  <a href="#">
-    <span class="step-num">M3</span>
+  <a href="#" class="tab-btn" data-tab="m4">
+    <span class="step-num">M4</span>
     <span class="step-lbl">Carte</span>
   </a>
   <div class="nav-tail">
@@ -1746,6 +1747,120 @@ P = 229 × 500/7 × 1,163 × 45 / 3<br>
 
 </section><!-- /tab-puissance -->
 
+<!-- ============================================================ -->
+<!-- Module 4 — Carte réseau (prototype)                          -->
+<!-- ============================================================ -->
+<section id="tab-m4" class="module-section">
+<div class="proj-page">
+
+  <div class="proj-page-head">
+    <div>
+      <div class="eyebrow">Module 4</div>
+      <h1 class="proj-page-title">Carte réseau <span class="m4-proto-badge">PROTOTYPE</span></h1>
+    </div>
+  </div>
+
+  <!-- Carte + barre d'actions -->
+  <div class="card m4-card mb-3">
+    <div id="m4-map"></div>
+    <div class="m4-toolbar">
+      <div class="m4-toolbar-actions">
+        <button class="btn sm ghost m4-mode-btn" id="m4-btn-add-sst">+ Sous-station</button>
+        <button class="btn sm ghost m4-mode-btn" id="m4-btn-trace">Tracer polyligne</button>
+        <button class="btn sm ghost m4-mode-btn" id="m4-btn-delete">Supprimer</button>
+        <button class="btn sm ghost" id="m4-btn-clear">Effacer tout</button>
+        <button class="btn sm brand" id="m4-btn-trace-terminer" style="display:none" disabled>Terminer le tracé</button>
+        <button class="btn sm ghost" id="m4-btn-trace-annuler" style="display:none">Annuler</button>
+      </div>
+      <div class="m4-toolbar-bg">
+        <label for="m4-tile-select">Fond :</label>
+        <select id="m4-tile-select" class="input m4-tile-select">
+          <option value="osm">Plan OSM</option>
+          <option value="satellite">Satellite</option>
+          <option value="vide">Fond vide</option>
+        </select>
+      </div>
+    </div>
+    <div id="m4-trace-hint" class="m4-trace-hint" style="display:none">
+      Cliquez sur la carte pour ajouter des points · Approchez un marqueur pour l'accrocher · Double-clic ou "Terminer le tracé" pour finaliser
+    </div>
+  </div>
+
+  <!-- Récapitulatif dimensionnement réseau -->
+  <div class="card mb-3">
+    <div class="card-head m4-recap-header">
+      <h3>Dimensionnement réseau</h3>
+      <div class="m4-recap-tdepart">
+        <label for="m4-tdepart">T départ réseau (°C)</label>
+        <input type="number" class="input" id="m4-tdepart" value="90" min="40" max="150" step="1" />
+      </div>
+    </div>
+    <div class="card-body">
+      <div id="m4-recap-error" class="m4-recap-error" style="display:none"></div>
+      <table id="m4-recap-table" class="m4-recap-table" style="display:none">
+        <thead>
+          <tr>
+            <th>Sous-station</th>
+            <th class="m4-col-r">Puissance (kW)</th>
+            <th class="m4-col-r">T retour (°C)</th>
+            <th class="m4-col-r">Débit (m³/h)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+      </table>
+      <h4 class="m4-recap-subtitle" id="m4-troncons-title" style="display:none">Tronçons réseau</h4>
+      <table id="m4-troncons-table" class="m4-recap-table" style="display:none">
+        <thead>
+          <tr>
+            <th>Tronçon</th>
+            <th class="m4-col-r">Débit (m³/h)</th>
+            <th class="m4-col-r">DN</th>
+            <th class="m4-col-r">Vitesse (m/s)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Panneau d'édition SST (masqué par défaut, affiché au clic sur un marqueur) -->
+  <div id="m4-edit-panel" class="m4-edit-panel" style="display:none">
+    <div class="card" style="max-width:400px">
+      <div class="card-head"><h3>Données sous-station</h3></div>
+      <div class="card-body">
+        <div class="field">
+          <label class="lbl" for="m4-edit-nom">Nom</label>
+          <input type="text" class="input" id="m4-edit-nom" placeholder="ex : SST-01, Bâtiment A…" />
+        </div>
+        <div class="field">
+          <label class="lbl" for="m4-edit-puissance">Puissance estimée (kW)</label>
+          <input type="number" class="input" id="m4-edit-puissance" min="0" placeholder="ex : 500" />
+        </div>
+        <div class="field">
+          <label class="lbl" for="m4-edit-tRetour">Température de retour (°C)</label>
+          <input type="number" class="input" id="m4-edit-tRetour" min="20" max="100" step="1" placeholder="ex : 60" />
+        </div>
+        <div class="field">
+          <label class="lbl" for="m4-edit-type">Type</label>
+          <select class="input" id="m4-edit-type">
+            <option value="Logement">Logement</option>
+            <option value="Tertiaire">Tertiaire</option>
+            <option value="Industrie">Industrie</option>
+            <option value="Autre">Autre</option>
+          </select>
+        </div>
+        <div class="proj-form-actions">
+          <button class="btn brand" id="m4-edit-ok">Valider</button>
+          <button class="btn ghost" id="m4-edit-cancel">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</section><!-- /tab-m4 -->
+
 </div>
 <!-- /#main-content -->
 
@@ -1754,6 +1869,8 @@ P = 229 × 500/7 × 1,163 × 45 / 3<br>
 <script src="js/validation.js"></script>
 <script src="js/hypotheses.js"></script>
 <script src="js/bdd.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/module4.js"></script>
 <script src="js/projects.js"></script>
 
 </body></html>

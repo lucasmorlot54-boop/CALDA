@@ -29,9 +29,9 @@ function setCurrentProjectId(id) {
 function getProjectData(id) {
   try {
     const raw = localStorage.getItem('flux_project_' + id);
-    if (!raw) return { sousStations: [], donneesP2: {}, hypotheses: {} };
+    if (!raw) return { sousStations: [], donneesP2: {}, hypotheses: {}, carteReseau: {} };
     return JSON.parse(raw);
-  } catch { return { sousStations: [], donneesP2: {}, hypotheses: {} }; }
+  } catch { return { sousStations: [], donneesP2: {}, hypotheses: {}, carteReseau: {} }; }
 }
 
 function saveCurrentProjectData() {
@@ -42,6 +42,7 @@ function saveCurrentProjectData() {
       sousStations: window.sousStations || [],
       donneesP2:    window.donneesP2   || {},
       hypotheses:   window.hypotheses  || {},
+      carteReseau:  window.carteReseau || {},
     }));
   } catch {}
 }
@@ -105,6 +106,11 @@ function openProject(id, { restoreModule = false } = {}) {
   window.sousStations = Array.isArray(data.sousStations) ? data.sousStations : [];
   window.donneesP2    = data.donneesP2   || {};
   window.hypotheses   = data.hypotheses  || {};
+  window.carteReseau  = data.carteReseau || {};
+  // La carte M4 est scopée par projet — on force sa réinitialisation pour
+  // qu'elle recharge window.carteReseau au prochain affichage de l'onglet
+  // (sans ça, l'instance Leaflet déjà créée garderait les données du projet précédent).
+  if (typeof resetModule4 === 'function') resetModule4();
 
   _migrateProjectData();
 
@@ -706,7 +712,7 @@ function creerProjet() {
   saveProjects(projects);
 
   localStorage.setItem('flux_project_' + id, JSON.stringify({
-    sousStations: [], donneesP2: {}, hypotheses: {},
+    sousStations: [], donneesP2: {}, hypotheses: {}, carteReseau: {},
   }));
 
   hideNewProjectForm();
@@ -850,6 +856,7 @@ function initModuleNav() {
 document.addEventListener('DOMContentLoaded', () => {
   initBDD();
   initHypotheses();
+  if (typeof initModule4 === 'function') initModule4();
   initModuleNav();
   initProjects();
 });
