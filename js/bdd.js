@@ -115,7 +115,6 @@ function _m1BuildFormObject() {
     ref,
     moa:       document.getElementById('sst-moa')?.value.trim()       || '',
     nature:    calculerNature({ hasExistant, hasProjete, existant }),
-    statut:    document.getElementById('sst-statut')?.value           || '',
     batiments: document.getElementById('sst-batiments')?.value.trim() || '',
     adresse:   document.getElementById('sst-adresse')?.value.trim()   || '',
     cp,
@@ -167,7 +166,7 @@ function _confirmLeaveDirty() {
 
 // IDs des champs communs du formulaire (champs état gérés par reinitialiserEtatTabs)
 const CHAMPS = [
-  'sst-ref', 'sst-moa', 'sst-statut', 'sst-batiments',
+  'sst-ref', 'sst-moa', 'sst-batiments',
   'sst-adresse', 'sst-cp', 'sst-ville', 'sst-latitude', 'sst-longitude',
   'sst-contact', 'sst-telephone', 'sst-email',
   'sst-remarques',
@@ -311,7 +310,6 @@ function ouvrirFormulaireEdition(index) {
   const setC = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
   setC('sst-ref',           s.ref);
   setC('sst-moa',           s.moa);
-  setC('sst-statut',        s.statut);
   setC('sst-batiments',     s.batiments);
   setC('sst-adresse',       s.adresse);
   setC('sst-cp',            s.cp);
