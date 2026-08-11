@@ -2102,6 +2102,21 @@
 
   .proj-page { max-width: 1440px; margin: 0 auto; padding: 28px 24px 64px 24px; }
 
+  /* Déborde volontairement de la colonne 1440px centrée de .proj-page pour
+     utiliser toute la largeur du viewport (ex. tableau M1), sans décaler le
+     reste du contenu de la page (qui reste aligné avec M0/M2). */
+  .proj-page-breakout {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    box-sizing: border-box;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
   /* Barre d'action */
   .proj-action-bar {
     display: flex; align-items: center; gap: 10px;

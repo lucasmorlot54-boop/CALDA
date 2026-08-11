@@ -380,10 +380,11 @@
 <!-- Module 1 — Référentiel sous-stations                         -->
 <!-- ============================================================ -->
 <section id="tab-bdd" class="module-section">
-<div class="proj-page" style="max-width:none">
+<div class="proj-page">
 
   <div class="proj-page-head">
     <div>
+      <div class="eyebrow">Module 1</div>
       <h1 class="proj-page-title">Référentiel sous-stations <span class="pill gray" id="badge-count">0</span></h1>
     </div>
     <div class="proj-page-actions">
@@ -664,7 +665,7 @@
 
       <div class="subhead lg"><h4>Localisation</h4><div class="line"></div></div>
       <div class="field-row cols-3">
-        <div class="field full">
+        <div class="field">
           <label class="lbl" for="sst-adresse">Adresse</label>
           <input type="text" class="input" id="sst-adresse" placeholder="ex : 12 rue des Lilas" />
         </div>
@@ -736,8 +737,9 @@
     </div>
   </div>
 
-  <!-- Liste des SST -->
-  <div class="card">
+  <!-- Liste des SST — déborde volontairement de la colonne 1440px centrée
+       (page identique à M0/M1 par ailleurs) pour utiliser plus de largeur. -->
+  <div class="card proj-page-breakout">
     <div class="table-wrapper">
       <table class="sst-table" id="sst-table">
         <thead>
