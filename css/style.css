@@ -2234,6 +2234,11 @@
   }
   .proj-card-nom { font-size: 14.5px; font-weight: 600; color: var(--ink); letter-spacing: -.005em; }
   .proj-card-nsst { flex: 0 0 auto; white-space: nowrap; }
+  .proj-card-affaire {
+    font-size: 10.5px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
   .proj-card-moa { font-size: 11.5px; color: var(--ink-2); }
   .proj-card-desc { font-size: 11.5px; color: var(--ink-3); line-height: 1.4; min-height: 1.4em; }
   .proj-card-desc--empty { color: var(--ink-4); }
@@ -2244,7 +2249,7 @@
   .proj-table { border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; background: #fff; }
   .proj-table-head, .proj-table-row {
     display: grid;
-    grid-template-columns: 1.6fr 1fr 1.8fr .9fr .6fr auto;
+    grid-template-columns: 1.6fr .8fr 1fr 1.6fr .9fr .6fr auto;
     gap: 12px;
     align-items: center;
     padding: 10px 14px;

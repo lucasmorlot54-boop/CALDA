@@ -459,6 +459,7 @@ function _renderV1(projects, container) {
     const nSST = Array.isArray(data.sousStations) ? data.sousStations.length : 0;
     return `<div class="proj-table-row">
       <span class="proj-table-nom">${_esc(p.nom)}</span>
+      <span>${_esc(p.numeroAffaire || '—')}</span>
       <span>${_esc(p.moa || '—')}</span>
       <span class="proj-table-desc">${_esc(p.description || '—')}</span>
       <span>${p.dateCreation ? p.dateCreation.slice(0, 10) : '—'}</span>
@@ -474,7 +475,7 @@ function _renderV1(projects, container) {
   container.innerHTML = `
     <div class="proj-table">
       <div class="proj-table-head">
-        <span>Nom du projet</span><span>MOA</span><span>Description</span>
+        <span>Nom du projet</span><span>N° affaire</span><span>MOA</span><span>Description</span>
         <span>Créé le</span><span>SST</span><span>Actions</span>
       </div>
       ${rows}
@@ -497,6 +498,7 @@ function _renderV2(projects, container) {
         <div class="proj-card-nom">${_esc(p.nom)}</div>
         <span class="pill gray proj-card-nsst">${nSST} SST</span>
       </div>
+      ${p.numeroAffaire ? `<div class="proj-card-affaire">Affaire ${_esc(p.numeroAffaire)}</div>` : ''}
       ${p.moa ? `<div class="proj-card-moa">${_esc(p.moa)}</div>` : ''}
       <div class="proj-card-desc${p.description ? '' : ' proj-card-desc--empty'}">${_esc(p.description || '—')}</div>
       <div class="proj-card-meta">${p.dateCreation ? p.dateCreation.slice(0, 10) : '—'}</div>
@@ -626,6 +628,7 @@ function showEditProjectForm(id) {
   document.getElementById('btn-creer-projet').textContent = 'Enregistrer';
   const setV = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = v || ''; };
   setV('proj-nom', proj.nom);
+  setV('proj-numero-affaire', proj.numeroAffaire);
   setV('proj-moa', proj.moa);
   setV('proj-date', proj.dateCreation);
   setV('proj-description', proj.description);
@@ -641,7 +644,7 @@ function hideNewProjectForm() {
   formCard.style.display = 'none';
   document.getElementById('btn-nouveau-projet').style.display = '';
   clearAllErrors(formCard);
-  ['proj-nom', 'proj-moa', 'proj-description', 'proj-date'].forEach(id => {
+  ['proj-nom', 'proj-numero-affaire', 'proj-moa', 'proj-description', 'proj-date'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -662,6 +665,7 @@ function creerProjet() {
     return;
   }
 
+  const numeroAffaire = (document.getElementById('proj-numero-affaire')?.value || '').trim();
   const moa         = (document.getElementById('proj-moa')?.value || '').trim();
   const description = (document.getElementById('proj-description')?.value || '').trim();
   const dateCreation = document.getElementById('proj-date')?.value || new Date().toISOString().slice(0, 10);
@@ -673,6 +677,7 @@ function creerProjet() {
     const proj = projects.find(p => p.id === _editingProjectId);
     if (!proj) { hideNewProjectForm(); return; }
     proj.nom = nom;
+    proj.numeroAffaire = numeroAffaire;
     proj.moa = moa;
     proj.description = description;
     proj.dateCreation = dateCreation;
@@ -694,7 +699,7 @@ function creerProjet() {
 
   // ── Création d'un nouveau projet ─────────────────────────────────────
   const id = generateProjectId();
-  const proj = { id, nom, moa, description, dateCreation };
+  const proj = { id, nom, numeroAffaire, moa, description, dateCreation };
   if (_formImageDataUrl) proj.image = _formImageDataUrl;
 
   projects.push(proj);
@@ -772,7 +777,7 @@ function initProjects() {
   document.getElementById('btn-creer-projet').addEventListener('click', creerProjet);
 
   // Entrée = créer le projet depuis les champs du formulaire
-  ['proj-nom', 'proj-moa', 'proj-description', 'proj-date'].forEach(id => {
+  ['proj-nom', 'proj-numero-affaire', 'proj-moa', 'proj-description', 'proj-date'].forEach(id => {
     document.getElementById(id)?.addEventListener('keydown', e => {
       if (e.key === 'Enter') creerProjet();
     });
