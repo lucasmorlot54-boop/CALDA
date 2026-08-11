@@ -30,9 +30,9 @@ const COLONNES_TABLEAU = [
   { key: 'sref',         libelle: 'Sref (m²)',      filtre: 'numerique' },
   { key: 'nbLogements',  libelle: 'Logements',      filtre: 'numerique' },
   { key: 'nature',       libelle: 'Nature',         filtre: 'enum' },
-  { key: 'pCh',         libelle: 'P CH (kW)',      filtre: 'numerique' },
-  { key: 'pEcs',        libelle: 'P ECS (kW)',     filtre: 'numerique' },
-  { key: 'statut',       libelle: 'Statut',         filtre: 'enum' },
+  { key: 'pCh',         libelle: 'P Ut. CH (kW)',    filtre: 'numerique' },
+  { key: 'pEcs',        libelle: 'P Ut. ECS (kW)',   filtre: 'numerique' },
+  { key: 'pTotal',       libelle: 'P Ut. totale (kW)', filtre: 'numerique' },
 ];
 
 // ── Nature calculée automatiquement ──────────────────────────────────────────
@@ -568,7 +568,6 @@ function _extraireValeur(s, colonne) {
     case 'sref':         return b.sref;
     case 'nbLogements':  return b.nbLogements;
     case 'nature':       return s.nature ?? '';
-    case 'statut':       return s.statut ?? '';
     case 'pCh': {
       const chR = parseFloat(d2.chRetenu);
       const mCh = parseFloat(d2.majorationCh ?? 0);
@@ -578,6 +577,17 @@ function _extraireValeur(s, colonne) {
       const ecsR = parseFloat(d2.ecsRetenu);
       const mEcs = parseFloat(d2.majorationEcs ?? 0);
       return (isNaN(ecsR) || ecsR <= 0) ? null : ecsR * (1 + (isNaN(mEcs) ? 0 : mEcs) / 100);
+    }
+    case 'pTotal': {
+      const chR  = parseFloat(d2.chRetenu);
+      const mCh  = parseFloat(d2.majorationCh ?? 0);
+      const pCh  = (isNaN(chR)  || chR  <= 0) ? null : chR  * (1 + (isNaN(mCh)  ? 0 : mCh)  / 100);
+      const ecsR = parseFloat(d2.ecsRetenu);
+      const mEcs = parseFloat(d2.majorationEcs ?? 0);
+      const pEcs = (isNaN(ecsR) || ecsR <= 0) ? null : ecsR * (1 + (isNaN(mEcs) ? 0 : mEcs) / 100);
+      const chPart  = b.typeService === 'ECS' ? null : pCh;
+      const ecsPart = b.typeService === 'CH'  ? null : pEcs;
+      return (chPart == null && ecsPart == null) ? null : (chPart ?? 0) + (ecsPart ?? 0);
     }
     default: return null;
   }
@@ -839,22 +849,25 @@ function rendreTableau() {
     const mEcs = d2.majorationEcs != null ? parseFloat(d2.majorationEcs) : 15;
     const pCh  = chR  ? Math.round(chR  * (1 + mCh  / 100)) : null;
     const pEcs = ecsR ? Math.round(ecsR * (1 + mEcs / 100)) : null;
+    const pChPart  = b.typeService === 'ECS' ? null : pCh;
+    const pEcsPart = b.typeService === 'CH'  ? null : pEcs;
+    const pTotal   = (pChPart == null && pEcsPart == null) ? null : (pChPart ?? 0) + (pEcsPart ?? 0);
     return `
     <tr class="${etatExiste ? 'sst-row' : 'sst-row sst-row-fallback'}" onclick="allerVersM2(${i})" title="Cliquer pour ouvrir dans Module 2">
       <td>
         <strong>${esc(s.ref)}</strong>
         ${s.batiments ? `<br><small style="color:var(--ink-3);font-size:11px">${esc(s.batiments)}</small>` : ''}
       </td>
-      <td style="white-space:normal;max-width:180px">${locLignes.length ? locLignes.join('<br>') : muted('—')}</td>
+      <td style="white-space:normal;max-width:220px">${locLignes.length ? locLignes.join('<br>') : muted('—')}</td>
       <td>${b.typeSST      ? badgeTypeSst(b.typeSST)      : muted('—')}</td>
       <td>${b.typeService  ? badgeType(b.typeService)     : muted('—')}</td>
       <td>${b.typeBatiment ? `<span style="font-size:11px">${esc(b.typeBatiment)}</span>` : muted('—')}</td>
       <td>${b.sref != null ? b.sref.toLocaleString('fr-FR') : muted('—')}</td>
       <td>${b.nbLogements ?? muted('—')}</td>
       <td>${s.nature  ? badgeNature(s.nature)   : muted('—')}</td>
-      <td style="text-align:center;font-weight:600;color:var(--hot-ink)">${b.typeService === 'ECS' ? muted('—') : (pCh  != null ? pCh  : muted('—'))}</td>
-      <td style="text-align:center;font-weight:600;color:var(--cold-ink)">${b.typeService === 'CH'  ? muted('—') : (pEcs != null ? pEcs : muted('—'))}</td>
-      <td>${s.statut  ? badgeStatut(s.statut)   : muted('—')}</td>
+      <td style="text-align:center;font-weight:600;color:var(--hot-ink)">${pChPart  != null ? pChPart  : muted('—')}</td>
+      <td style="text-align:center;font-weight:600;color:var(--cold-ink)">${pEcsPart != null ? pEcsPart : muted('—')}</td>
+      <td style="text-align:center;font-weight:700;color:var(--accent-ink)">${pTotal != null ? pTotal : muted('—')}</td>
       <td style="white-space:nowrap" onclick="event.stopPropagation()">
         <button class="btn btn-outline btn-sm" onclick="ouvrirFormulaireEdition(${i})">Éditer</button>
         <button class="btn btn-danger btn-sm"  onclick="supprimerSST(${i})" style="margin-left:4px">✕</button>
@@ -922,15 +935,6 @@ function badgeNature(nature) {
   return `<span class="tag ${map[nature] || ''}">${esc(nature)}</span>`;
 }
 
-function badgeStatut(statut) {
-  const map = {
-    'À étudier': 'tag-a-etudier',
-    'En cours':  'tag-en-cours',
-    'Validé':    'tag-valide',
-    'Terminé':   'tag-termine',
-  };
-  return `<span class="tag ${map[statut] || ''}">${esc(statut)}</span>`;
-}
 function badgeEnergie(energie) {
   const map = { 'RCU': 'tag-energie-rcu', 'Gaz': 'tag-energie-gaz', 'Fioul': 'tag-energie-fioul' };
   return `<span class="tag ${map[energie] || ''}">${esc(energie)}</span>`;

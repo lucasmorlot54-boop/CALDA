@@ -380,11 +380,10 @@
 <!-- Module 1 — Référentiel sous-stations                         -->
 <!-- ============================================================ -->
 <section id="tab-bdd" class="module-section">
-<div class="proj-page" style="max-width:1300px">
+<div class="proj-page" style="max-width:none">
 
   <div class="proj-page-head">
     <div>
-      <div class="eyebrow">Module 1</div>
       <h1 class="proj-page-title">Référentiel sous-stations <span class="pill gray" id="badge-count">0</span></h1>
     </div>
     <div class="proj-page-actions">
@@ -723,8 +722,10 @@
 
   <!-- Toggle Existant / Projeté (tableau) -->
   <div class="tableau-toggle">
-    <button type="button" class="p2-mode-btn" data-etat="existant" id="toggle-etat-existant">Existant</button>
-    <button type="button" class="p2-mode-btn active" data-etat="projete" id="toggle-etat-projete">Projeté</button>
+    <div class="tableau-toggle-group">
+      <button type="button" class="p2-mode-btn" data-etat="existant" id="toggle-etat-existant">Existant</button>
+      <button type="button" class="p2-mode-btn active" data-etat="projete" id="toggle-etat-projete">Projeté</button>
+    </div>
     <div class="tableau-compteur-zone">
       <span id="tableau-alerte" class="tableau-alerte" style="display:none;"></span>
       <button type="button" id="btn-reset-filtres" class="btn sm ghost" style="display:none;">Réinitialiser</button>
@@ -738,16 +739,16 @@
         <thead>
           <tr>
             <th data-col-key="ref">Référence</th>
-            <th>Localisation</th>
+            <th style="min-width:190px">Localisation</th>
             <th data-col-key="typeSST">Type de SST</th>
             <th data-col-key="typeService">Type</th>
             <th data-col-key="typeBatiment">Type bâtiment</th>
             <th data-col-key="sref">Sref (m²)</th>
             <th data-col-key="nbLogements">Logements</th>
             <th data-col-key="nature">Nature</th>
-            <th style="text-align:center" data-col-key="pCh">P CH (kW)</th>
-            <th style="text-align:center" data-col-key="pEcs">P ECS (kW)</th>
-            <th data-col-key="statut">Statut</th>
+            <th style="text-align:center" data-col-key="pCh">P Ut. CH (kW)</th>
+            <th style="text-align:center" data-col-key="pEcs">P Ut. ECS (kW)</th>
+            <th style="text-align:center" data-col-key="pTotal">P Ut. totale (kW)</th>
             <th>Actions</th>
           </tr>
         </thead>
