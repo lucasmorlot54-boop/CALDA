@@ -142,7 +142,7 @@
 <!-- Module 0 — Hypothèses générales                              -->
 <!-- ============================================================ -->
 <section id="tab-hypotheses" class="module-section">
-<div class="proj-page" style="max-width:1100px">
+<div class="proj-page">
 
   <div class="proj-page-head">
     <div>
@@ -157,28 +157,17 @@
     <div class="card mb-3">
       <div class="card-head"><h3>Réseau de chaleur</h3></div>
       <div class="card-body">
-        <div class="subhead"><h4>Régime hiver</h4><div class="line"></div></div>
         <div class="field-row cols-2">
           <div class="field">
-            <label class="lbl" for="hyp-rch-dep-hiver">T° départ primaire hiver (°C)</label>
+            <label class="lbl" for="hyp-rch-dep-hiver">T° arrivée primaire hiver (°C)</label>
             <input type="number" class="input" id="hyp-rch-dep-hiver" placeholder="ex : 90" />
           </div>
           <div class="field">
-            <label class="lbl" for="hyp-rch-ret-hiver">T° retour primaire hiver (°C)</label>
-            <input type="number" class="input" id="hyp-rch-ret-hiver" placeholder="ex : 70" />
-          </div>
-        </div>
-        <div class="subhead mt-2"><h4>Régime été</h4><div class="line"></div></div>
-        <div class="field-row cols-2">
-          <div class="field">
-            <label class="lbl" for="hyp-rch-dep-ete">T° départ primaire été (°C)</label>
+            <label class="lbl" for="hyp-rch-dep-ete">T° arrivée primaire été (°C)</label>
             <input type="number" class="input" id="hyp-rch-dep-ete" placeholder="ex : 75" />
           </div>
-          <div class="field">
-            <label class="lbl" for="hyp-rch-ret-ete">T° retour primaire été (°C)</label>
-            <input type="number" class="input" id="hyp-rch-ret-ete" placeholder="ex : 60" />
-          </div>
         </div>
+        <p class="field-hint mt-2">Les températures de retour primaire (hiver/été) sont calculées dans les Modules 2 et 3.</p>
       </div>
     </div>
 
@@ -186,7 +175,7 @@
     <div class="card mb-3">
       <div class="card-head"><h3>DJU — Degrés-Jours Unifiés (base 18°C)</h3></div>
       <div class="card-body">
-        <div class="field-row cols-3">
+        <div class="field-row cols-2">
           <div class="field">
             <label class="lbl" for="hyp-station">Station météo de référence</label>
             <input type="text" class="input" id="hyp-station" placeholder="ex : Paris-Orly" />
@@ -195,6 +184,9 @@
             <label class="lbl" for="hyp-dju-ref">DJU de référence (°C.j)</label>
             <input type="number" class="input" id="hyp-dju-ref" placeholder="ex : 2 500" min="0" />
           </div>
+        </div>
+        <div class="subhead mt-2"><h4>Historique 5 dernières années</h4><div class="line"></div></div>
+        <div class="field-row cols-5">
           <div class="field">
             <label class="lbl" for="hyp-dju-n1">DJU N-1 (°C.j)</label>
             <input type="number" class="input" id="hyp-dju-n1" placeholder="°C.j" min="0" />
@@ -223,6 +215,8 @@
     <div class="card mb-3" id="hyp-ecs-card">
       <div class="card-head"><h3>Hypothèses ECS</h3></div>
       <div class="card-body">
+
+        <div class="subhead"><h4>Production</h4><div class="line"></div></div>
         <div class="field-row cols-3">
           <div class="field">
             <label class="lbl" for="hyp-t-dep-ecs">T° départ ECS (°C) <span class="help-badge">ℹ</span></label>
@@ -242,12 +236,10 @@
             <label class="lbl" for="hyp-dt-ecs-calc">ΔT ECS (calculé)</label>
             <input type="number" class="input empty" id="hyp-dt-ecs-calc" readonly />
           </div>
-          <div class="field">
-            <label class="lbl" for="hyp-pincement-ecs">ΔT min primaire/secondaire — échangeur ECS (°C) <span class="help-badge">ℹ</span></label>
-            <div class="help-content">Écart minimum cible entre la température de retour primaire RCU et la température de retour secondaire ECS (boucle ECS ou eau froide selon configuration). Valeur typique 5 à 10°C. Sur l'ECS, des écarts plus faibles entraînent un surdimensionnement d'échangeur coûteux pour un gain marginal sur le retour primaire (la T° ECS étant élevée, la pénalisation du retour primaire est moindre que pour le CH). Cette valeur n'est PAS un pincement thermodynamique au sens strict mais une contrainte de dimensionnement orientée exploitation.</div>
-            <input type="number" class="input" id="hyp-pincement-ecs" placeholder="défaut : 10" min="0" step="0.5" value="10" />
-            <small class="field-hint">Écart minimum visé entre retour primaire RCU et retour secondaire ECS</small>
-          </div>
+        </div>
+
+        <div class="subhead mt-2"><h4>Bouclage</h4><div class="line"></div></div>
+        <div class="field-row cols-2">
           <div class="field">
             <label class="lbl" for="hyp-t-ret-bouclage-ecs">T° retour bouclage ECS (°C) <span class="help-badge">ℹ</span></label>
             <div class="help-content">Température de retour de la boucle de recyclage ECS. Doit rester ≥ 50°C en tout point pour prévention légionellose (Arrêté du 30 novembre 2005). Utilisée pour le calcul du ΔT de l'étage de finition dans les montages deux étages.</div>
@@ -255,6 +247,17 @@
                    min="0" max="100" step="1" value="53" />
             <small class="field-hint">T° de retour de la boucle de recyclage ECS</small>
           </div>
+          <div class="field">
+            <label class="lbl" for="hyp-ecs-taux-bouclage">Majoration pertes bouclage ECS (%) <span class="help-badge">ℹ</span></label>
+            <div class="help-content">Majoration énergétique appliquée à la puissance ECS (Méthode 2) pour compenser les pertes thermiques de la boucle de recirculation ECS.<br><br><strong>Formule :</strong> P_utile = P_EF × (1 + Majoration / 100)<br><br><strong>Origine :</strong> AICVF Tome 3 (1991). Plage usuelle BE 15–25 %.<br><br><strong>Distinct de la « Part échangeur bouclage » (Module 2) :</strong> ce paramètre est une majoration énergétique globale, indépendante de la répartition charge/bouclage propre à la configuration ECS deux étages.</div>
+            <input type="number" class="input" id="hyp-ecs-taux-bouclage" placeholder="défaut : 20"
+                   min="0" max="50" step="5" value="20" />
+            <small class="field-hint">Majoration énergétique M2 — pertes thermiques boucle ECS</small>
+          </div>
+        </div>
+
+        <div class="subhead mt-2"><h4>Puisage &amp; dimensionnement échangeur</h4><div class="line"></div></div>
+        <div class="field-row cols-3">
           <div class="field">
             <label class="lbl" for="hyp-t-puisage-ecs">T° de puisage ECS (°C) <span class="help-badge">ℹ</span></label>
             <div class="help-content">NF EN 12831-3 §B — ϑ_draw : température de l'eau mélangée au point d'usage. Valeur conventionnelle française 40°C (Th-BCE 2020 §2.1.1). À ne pas confondre avec la T° de production ECS (départ échangeur, généralement 60°C).</div>
@@ -270,13 +273,13 @@
             <small class="field-hint">T° du réseau eau froide alimentant la production ECS</small>
           </div>
           <div class="field">
-            <label class="lbl" for="hyp-ecs-taux-bouclage">Majoration pertes bouclage ECS (%) <span class="help-badge">ℹ</span></label>
-            <div class="help-content">Majoration énergétique appliquée à la puissance ECS (Méthode 2) pour compenser les pertes thermiques de la boucle de recirculation ECS.<br><br><strong>Formule :</strong> P_utile = P_EF × (1 + Majoration / 100)<br><br><strong>Origine :</strong> AICVF Tome 3 (1991). Plage usuelle BE 15–25 %.<br><br><strong>Distinct de la « Part échangeur bouclage » (Module 2) :</strong> ce paramètre est une majoration énergétique globale, indépendante de la répartition charge/bouclage propre à la configuration ECS deux étages.</div>
-            <input type="number" class="input" id="hyp-ecs-taux-bouclage" placeholder="défaut : 20"
-                   min="0" max="50" step="5" value="20" />
-            <small class="field-hint">Majoration énergétique M2 — pertes thermiques boucle ECS</small>
+            <label class="lbl" for="hyp-pincement-ecs">ΔT min primaire/secondaire — échangeur ECS (°C) <span class="help-badge">ℹ</span></label>
+            <div class="help-content">Écart minimum cible entre la température de retour primaire RCU et la température de retour secondaire ECS (boucle ECS ou eau froide selon configuration). Valeur typique 5 à 10°C. Sur l'ECS, des écarts plus faibles entraînent un surdimensionnement d'échangeur coûteux pour un gain marginal sur le retour primaire (la T° ECS étant élevée, la pénalisation du retour primaire est moindre que pour le CH). Cette valeur n'est PAS un pincement thermodynamique au sens strict mais une contrainte de dimensionnement orientée exploitation.</div>
+            <input type="number" class="input" id="hyp-pincement-ecs" placeholder="défaut : 10" min="0" step="0.5" value="10" />
+            <small class="field-hint">Écart minimum visé entre départ primaire ECS et retour secondaire ECS</small>
           </div>
         </div>
+
       </div>
     </div>
 
@@ -298,7 +301,7 @@
             <label class="lbl" for="hyp-pincement-ch">ΔT min primaire/secondaire — échangeur CH (°C) <span class="help-badge">ℹ</span></label>
             <div class="help-content">Écart minimum cible entre la température de retour primaire RCU et la température de retour secondaire bâtiment, prescrit par le BE pour optimiser la chute du retour primaire (notamment en géothermie). Valeur typique pour réseau optimisé : 2 à 3°C. Valeur standard hors optimisation : 5°C. Cette valeur n'est PAS un pincement thermodynamique d'échangeur au sens strict (écart entre courbes de température primaire/secondaire interne à l'échangeur), mais une contrainte de dimensionnement orientée exploitation.</div>
             <input type="number" class="input" id="hyp-pincement-ch" placeholder="défaut : 2" min="0" step="0.5" value="2" />
-            <small class="field-hint">Écart minimum visé entre retour primaire RCU et retour secondaire bâtiment</small>
+            <small class="field-hint">Écart minimum visé entre départ primaire Chauffage et retour secondaire bâtiment</small>
           </div>
         </div>
       </div>

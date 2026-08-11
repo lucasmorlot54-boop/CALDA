@@ -437,7 +437,7 @@ function renderHypBatTable() {
                  value="${sv('besoin', t.dBesoin)}" placeholder="${t.dBesoin ?? '—'}" min="0" step="any" /></td>
             <td class="hyp-bat-unit-label">${unitBesoin}</td>
             <td class="hyp-bat-source">${t.dSource || '—'}</td>
-            <td class="hyp-bat-calc-cell" data-calc-key="${t.key}">${fmtPuEcs(puCalc)}</td>
+            <td class="hyp-bat-calc-cell" data-calc-key="${t.key}">${t.m1IsLogement ? '—' : fmtPuEcs(puCalc)}</td>
             <td class="hyp-bat-unit-label">${t.dUnitEcs}</td>
           </tr>`;
         }).join('');
@@ -456,7 +456,7 @@ function updateHypBatCalcCells() {
     const key = td.dataset.calcKey;
     const def = HYP_BAT_TYPES.find(t => t.key === key);
     if (!def) return;
-    td.textContent = fmtPuEcs(calculerPuEcsDerivee(def, hb[key] || {}, h));
+    td.textContent = def.m1IsLogement ? '—' : fmtPuEcs(calculerPuEcsDerivee(def, hb[key] || {}, h));
   });
 }
 
@@ -487,9 +487,7 @@ function chargerHypothesesForm() {
     el.value = (v !== null && v !== undefined && v !== '') ? v : def;
   };
   sv('hyp-rch-dep-hiver', h.rchDepHiver);
-  sv('hyp-rch-ret-hiver', h.rchRetHiver);
   sv('hyp-rch-dep-ete',   h.rchDepEte);
-  sv('hyp-rch-ret-ete',   h.rchRetEte);
   sv('hyp-station',       h.stationMeteo);
   sv('hyp-dju-ref',       h.djuRef);
   sv('hyp-dju-n1', h.djuN1); sv('hyp-dju-n2', h.djuN2); sv('hyp-dju-n3', h.djuN3);
@@ -529,10 +527,13 @@ function _p0BuildDataObject() {
     return isNaN(v) ? null : v;
   };
   const s = id => document.getElementById(id)?.value.trim() || '';
+  // rchRetHiver/rchRetEte : plus de champ de saisie M0 (calculés en M2/M3) —
+  // on préserve la valeur déjà stockée plutôt que de l'écraser à chaque enregistrement M0.
+  const hPrev = window.hypotheses || {};
 
   return {
-    rchDepHiver:      g('hyp-rch-dep-hiver'), rchRetHiver: g('hyp-rch-ret-hiver'),
-    rchDepEte:        g('hyp-rch-dep-ete'),   rchRetEte:   g('hyp-rch-ret-ete'),
+    rchDepHiver:      g('hyp-rch-dep-hiver'), rchRetHiver: hPrev.rchRetHiver ?? null,
+    rchDepEte:        g('hyp-rch-dep-ete'),   rchRetEte:   hPrev.rchRetEte   ?? null,
     stationMeteo:     s('hyp-station'),
     djuRef:           g('hyp-dju-ref'),
     djuN1: g('hyp-dju-n1'), djuN2: g('hyp-dju-n2'), djuN3: g('hyp-dju-n3'),
