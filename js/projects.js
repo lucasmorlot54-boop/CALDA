@@ -856,6 +856,7 @@ function initModuleNav() {
 document.addEventListener('DOMContentLoaded', () => {
   initBDD();
   initHypotheses();
+  if (typeof initPuissanceMaquette === 'function') initPuissanceMaquette();
   if (typeof initModule4 === 'function') initModule4();
   initModuleNav();
   initProjects();
