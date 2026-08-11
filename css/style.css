@@ -101,45 +101,25 @@
     padding: 0 24px 96px 24px;
   }
 
-  /* ---------- FLUX header (document technique) ---------- */
-  .flux-header {
+  /* ---------- En-tête module (variante de .app-header) ---------- */
+  .app-header--module {
     position: sticky; top: 0; z-index: 50;
-    background: #fdfcf9;
-    color: var(--ink);
-    padding: 0 24px;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     height: 52px;
-    border-bottom: 1px solid var(--line);
+    padding: 0 24px;
   }
-  .flux-header::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: var(--brand);
-  }
-  .flux-header .crumbs {
+  .app-header--module .app-header-pipes { opacity: .4; }
+  .app-header-crumbs {
+    position: relative;
     display: flex; align-items: center; gap: 10px;
     font-size: 12.5px;
     color: var(--ink-2);
   }
-  .flux-header .crumbs .brand-logo {
-    font-family: "Inter", sans-serif;
-    font-weight: 800;
-    font-size: 20px;
-    letter-spacing: -.02em;
-    color: var(--brand);
-    margin-right: 4px;
-  }
-  .flux-header .crumbs .brand-logo .dim { color: var(--brand); opacity: .45; }
-  .flux-header .crumbs .sep { color: var(--ink-4); }
-  .flux-header .crumbs .proj {
-    color: var(--ink);
-    font-weight: 500;
-  }
-  .flux-header .crumbs .proj::before {
+  .app-header--module .app-header-name { font-size: 20px; cursor: pointer; }
+  .app-header-project { color: var(--ink); font-weight: 500; }
+  .app-header-project::before {
     content: "";
     display: inline-block;
     width: 6px; height: 6px;
@@ -149,16 +129,17 @@
     margin-right: 8px;
     vertical-align: 1px;
   }
-  .flux-header .title {
-    font-size: 11.5px;
-    font-weight: 500;
-    color: var(--ink-3);
-    text-transform: uppercase;
-    letter-spacing: .08em;
+  .app-header-tagline--center {
+    position: relative;
+    margin: 0;
     text-align: center;
+    font-weight: 500;
   }
-  .flux-header .actions { display: flex; gap: 6px; justify-content: flex-end; }
-  .flux-header .actions .h-btn {
+  .app-header-actions {
+    position: relative;
+    display: flex; gap: 6px; justify-content: flex-end;
+  }
+  .h-btn {
     height: 28px;
     padding: 0 12px;
     background: #fff;
@@ -170,18 +151,18 @@
     cursor: pointer;
     display: inline-flex; align-items: center; gap: 6px;
   }
-  .flux-header .actions .h-btn:hover {
+  .h-btn:hover {
     background: var(--panel-2);
     color: var(--ink);
     border-color: var(--ink-4);
   }
-  .flux-header .actions .h-btn.solid {
+  .h-btn.solid {
     background: var(--brand);
     border-color: var(--brand);
     color: #fff;
     font-weight: 600;
   }
-  .flux-header .actions .h-btn.solid:hover {
+  .h-btn.solid:hover {
     background: var(--brand-2);
     border-color: var(--brand-2);
   }
@@ -1993,7 +1974,101 @@
   /* ============================================================ */
   /* Page de garde — Gestion des projets                          */
   /* ============================================================ */
-  .proj-page { max-width: 1440px; margin: 0 auto; padding: 32px 24px 96px 24px; }
+
+  /* En-tête de marque persistant */
+  .app-header {
+    position: relative;
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel-2);
+    overflow: hidden;
+  }
+  .app-header-pipes {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: .5;
+  }
+  .app-header-name {
+    position: relative;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -.01em;
+  }
+  .app-header-sep { position: relative; color: var(--ink-4); font-size: 12px; }
+  .app-header-tagline {
+    position: relative;
+    font-size: 11px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  /* Grand bandeau nom d'outil — thème clair, réseau de tuyaux en arrière-plan */
+  .app-hero {
+    position: relative;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .app-hero::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--brand);
+    z-index: 1;
+  }
+  .app-hero-pipes {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: .6;
+  }
+  .app-hero-inner {
+    position: relative;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 92px 24px 88px 24px;
+    text-align: center;
+  }
+  .app-hero-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--brand-ink);
+    margin-bottom: 12px;
+    text-shadow: 0 0 16px var(--panel-2), 0 0 8px var(--panel-2), 0 0 4px var(--panel-2);
+  }
+  .app-hero-name {
+    font-size: 64px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--ink);
+    line-height: 1;
+    text-shadow: 0 0 40px var(--panel-2), 0 0 24px var(--panel-2), 0 0 12px var(--panel-2);
+  }
+  .app-hero-sub {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--ink-2);
+    letter-spacing: .01em;
+    text-shadow: 0 0 16px var(--panel-2), 0 0 8px var(--panel-2), 0 0 4px var(--panel-2);
+  }
+
+  .proj-page { max-width: 1440px; margin: 0 auto; padding: 28px 24px 64px 24px; }
+
+  /* Barre d'action */
+  .proj-action-bar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 26px;
+  }
+  .proj-action-bar-spacer { flex: 1; }
 
   .proj-page-head {
     display: flex; align-items: flex-end; justify-content: space-between;
@@ -2001,7 +2076,7 @@
     margin-bottom: 22px;
   }
   .proj-page-title {
-    margin: 4px 0 0 0;
+    margin: 0;
     font-size: 22px;
     font-weight: 600;
     color: var(--ink);
@@ -2009,9 +2084,21 @@
   }
   .proj-page-actions { display: flex; gap: 8px; }
 
+  /* Pied de page léger */
+  .app-footer {
+    max-width: 1440px;
+    margin: 40px auto 0 auto;
+    padding: 16px 24px;
+    border-top: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px;
+    color: var(--ink-4);
+  }
+  .app-footer-link { color: var(--ink-3); text-decoration: none; }
+  .app-footer-link:hover { color: var(--ink); text-decoration: underline; }
+
   /* Formulaire nouveau projet */
   .proj-form-card { margin-bottom: 22px; }
-  .proj-form-card .field.full { grid-column: 1 / -1; }
   .proj-form-actions {
     display: flex; gap: 10px; align-items: center;
     margin-top: 14px;
@@ -2043,9 +2130,51 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+    overflow: hidden;
     transition: border-color .15s ease, box-shadow .15s ease;
   }
   .proj-card:hover { border-color: var(--ink-4); box-shadow: 0 2px 8px rgba(20,24,33,.08); }
+
+  /* Image de couverture — modifiable via le bouton "Modifier" (formulaire) */
+  .proj-card-image {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    margin: -16px -18px 12px -18px;
+    background: var(--panel-2);
+    overflow: hidden;
+  }
+  .proj-card-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .proj-card-image-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-4);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  /* Champ image du formulaire création/édition */
+  .proj-form-image {
+    width: 240px;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    overflow: hidden;
+    background: var(--panel-2);
+    margin-bottom: 8px;
+  }
+  .proj-form-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .proj-form-image-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-4);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .proj-form-image-actions { display: flex; gap: 8px; }
+
   .proj-card-top {
     display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
   }
@@ -2216,3 +2345,220 @@
   }
   .hyp-bat-table .hyp-bat-type-label .help-badge { margin-left: 6px; }
   .hyp-bat-table .hyp-bat-type-label .help-content { margin-top: 8px; width: min(480px, 60vw); }
+
+  /* ============================================================ */
+  /* Module 1 — Référentiel sous-stations                         */
+  /* ============================================================ */
+
+  /* Généralisation : champ pleine largeur dans une .field-row (au-delà de la page projets) */
+  .field.full { grid-column: 1 / -1; }
+
+  /* Variantes de boutons FLUX (générées par bdd.js) — coexistent avec .btn.primary/.ghost/... */
+  .btn-outline { background: #fff; color: var(--ink-2); border-color: var(--line); }
+  .btn-outline:hover { border-color: var(--ink-4); color: var(--ink); }
+  .btn-danger { background: #fff; color: var(--danger-ink); border-color: var(--danger); }
+  .btn-danger:hover { background: var(--danger-soft); }
+  .btn-sm { height: 24px; padding: 0 8px; font-size: 11px; }
+
+  /* Toggle pilule Existant / Projeté (tableau + onglets formulaire) */
+  .tableau-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    margin: 4px 0 14px 0;
+  }
+  .tableau-compteur-zone { display: flex; align-items: center; gap: 10px; }
+  .tableau-alerte { font-size: 11px; color: var(--warn); font-weight: 600; }
+  .p2-mode-btn {
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--ink-3);
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 7px 16px;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease, box-shadow .15s ease;
+  }
+  .tableau-toggle .p2-mode-btn:first-child { border-radius: 999px 0 0 999px; }
+  .tableau-toggle .p2-mode-btn:last-child  { border-radius: 0 999px 999px 0; margin-left: -1px; }
+  .p2-mode-btn.active {
+    background: #fff;
+    color: var(--hot-ink);
+    font-weight: 600;
+    border-color: var(--ink-4);
+    box-shadow: 0 1px 2px rgba(20,24,33,.08);
+    position: relative;
+    z-index: 1;
+  }
+  .p2-mode-btn:hover:not(.active) { color: var(--ink); }
+  .p2-mode-btn.disabled { opacity: .5; }
+
+  .sst-etat-tabs {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .sst-etat-tabs .p2-mode-btn:first-child { border-radius: 0; }
+  .sst-etat-tabs .p2-mode-btn:last-child  { border-radius: 0; margin-left: -1px; }
+  .sst-etat-tab.tab-en-erreur { color: var(--danger-ink); border-color: var(--danger); }
+
+  .sst-etat-cta {
+    padding: 20px;
+    text-align: center;
+    background: var(--panel-2);
+    border: 1px dashed var(--ink-4);
+    border-radius: var(--r-lg);
+  }
+  .sst-etat-cta p { margin: 0 0 10px 0; }
+
+  .form-actions-etat { margin-top: 14px; }
+
+  .m0-info-strip {
+    font-size: 11px;
+    color: var(--ink-2);
+    background: var(--panel-2);
+    border: 1px solid var(--line-2);
+    border-radius: var(--r);
+    padding: 6px 10px;
+    margin-bottom: 10px;
+  }
+  .m0-info-strip strong { color: var(--ink); }
+
+  /* Badges tableau SST (générés par bdd.js — classes tag-*) */
+  .tag.tag-ch      { color: var(--hot-ink);  border-color: #f1c7a8; background: var(--hot-soft); }
+  .tag.tag-ecs     { color: var(--cold-ink); border-color: #b7c5ee; background: var(--cold-soft); }
+  .tag.tag-both    { color: var(--accent-ink); border-color: var(--ink-4); background: var(--accent-soft); }
+  .tag.tag-primaire   { color: var(--pill-blue-ink); border-color: #5a7bb0; background: var(--pill-blue); }
+  .tag.tag-secondaire { color: var(--pill-gray-ink); border-color: #9498a0; background: var(--pill-gray); }
+  .tag.tag-neuf         { color: var(--pill-green-ink);  border-color: #6a9d6a; background: var(--pill-green); }
+  .tag.tag-existant     { color: var(--pill-gray-ink);   border-color: #9498a0; background: var(--pill-gray); }
+  .tag.tag-renovation   { color: var(--pill-orange-ink); border-color: #c08560; background: var(--pill-orange); }
+  .tag.tag-raccordement { color: var(--pill-purple-ink); border-color: #8e75c2; background: var(--pill-purple); }
+  .tag.tag-a-etudier { color: var(--pill-gray-ink);   border-color: #9498a0; background: var(--pill-gray); }
+  .tag.tag-en-cours  { color: var(--pill-yellow-ink); border-color: #c89c3d; background: var(--pill-yellow); }
+  .tag.tag-valide    { color: var(--pill-green-ink);  border-color: #6a9d6a; background: var(--pill-green); }
+  .tag.tag-termine   { color: var(--pill-teal-ink);   border-color: #6aa691; background: var(--pill-teal); }
+  .tag.tag-energie-rcu   { color: var(--hot-ink); border-color: #f1c7a8; background: var(--hot-soft); }
+  .tag.tag-energie-gaz   { color: var(--pill-orange-ink); border-color: #c08560; background: var(--pill-orange); }
+  .tag.tag-energie-fioul { color: var(--pill-coral-ink);  border-color: #c08379; background: var(--pill-coral); }
+
+  .badge-placeholder { color: var(--ink-4); cursor: help; }
+
+  /* État vide (tableau SST) — même recette que .proj-empty */
+  .empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--ink-3);
+    font-size: 12.5px;
+    background: var(--panel-2);
+    border: 1px dashed var(--ink-4);
+    border-radius: var(--r-lg);
+  }
+  .empty-state strong { color: var(--ink-2); }
+
+  /* Tableau SST triable / filtrable */
+  .sst-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .sst-table thead th {
+    background: var(--panel-2);
+    padding: 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .sst-table .th-inner {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 10px;
+  }
+  .sst-table .th-libelle {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+  .sst-table .th-tri { font-size: 9px; color: var(--ink-3); }
+  .sst-table .th-tri-neutre { color: var(--ink-4); opacity: .6; }
+  .sst-table .th-filtre-btn {
+    border: 0;
+    background: transparent;
+    color: var(--ink-4);
+    font-size: 9px;
+    cursor: pointer;
+    padding: 2px 3px;
+    border-radius: 3px;
+    margin-left: auto;
+  }
+  .sst-table .th-filtre-btn:hover { background: var(--line-2); color: var(--ink-2); }
+  .sst-table .th-filtre-btn.active { color: var(--ink); font-weight: 700; background: var(--pill-blue); }
+  .sst-table thead th[data-col-key] { cursor: pointer; }
+  .sst-table tbody td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line-2);
+    vertical-align: middle;
+  }
+  .sst-table tbody tr.sst-row { cursor: pointer; }
+  .sst-table tbody tr.sst-row:hover td { background: var(--panel-2); }
+  .sst-table tbody tr.sst-row-fallback { opacity: .7; }
+
+  /* Dropdown de filtre (singleton injecté en fin de body) */
+  #filtre-dropdown {
+    position: fixed;
+    z-index: 200;
+    min-width: 220px;
+    max-width: 280px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    box-shadow: 0 6px 20px rgba(20,24,33,.14);
+    padding: 10px;
+  }
+  #filtre-dropdown .filtre-input {
+    width: 100%;
+    height: 30px;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 0 8px;
+    font-size: 12px;
+    font-family: inherit;
+  }
+  #filtre-dropdown .filtre-checkboxes {
+    max-height: 220px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  #filtre-dropdown .filtre-checkboxes label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  #filtre-dropdown .filtre-numerique { display: flex; flex-direction: column; gap: 8px; }
+  #filtre-dropdown .filtre-numerique label {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    font-size: 11.5px; color: var(--ink-2);
+  }
+  #filtre-dropdown .filtre-numerique input {
+    width: 100px; height: 28px;
+    border: 1px solid var(--line); border-radius: var(--r);
+    padding: 0 8px; font-size: 12px; font-family: inherit;
+  }
+  #filtre-dropdown .filtre-actions {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line-2);
+  }
+  #filtre-dropdown .filtre-effacer { font-size: 11px; color: var(--ink-3); text-decoration: none; }
+  #filtre-dropdown .filtre-effacer:hover { color: var(--danger-ink); text-decoration: underline; }
+  #filtre-dropdown .filtre-appliquer {
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: var(--r);
+    cursor: pointer;
+  }

@@ -12,21 +12,38 @@
 <!-- Page de garde — Gestion des projets                          -->
 <!-- ============================================================ -->
 <div id="page-projets">
+
+  <div class="app-hero">
+    <svg class="app-hero-pipes" viewBox="0 0 1440 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <path d="M -50 70 L 280 70 L 280 190 L 680 190 L 680 60 L 1550 60" fill="none" stroke="var(--hot)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 250 -50 L 250 110 L 640 110 L 640 210 L 1150 210 L 1150 100 L 1550 100" fill="none" stroke="var(--cold)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M -50 220 L 250 220 L 250 140 L 550 140 L 550 200 L 1550 200" fill="none" stroke="var(--proj)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 950 290 L 950 160 L 1320 160 L 1320 20 L 1550 20" fill="none" stroke="var(--ink-4)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <div class="app-hero-inner">
+      <div class="app-hero-eyebrow">Outil MOE · Réseaux de chaleur urbains</div>
+      <div class="app-hero-name">CALDA</div>
+      <div class="app-hero-sub">Dimensionnement de sous-stations RCU</div>
+    </div>
+  </div>
+
   <div class="proj-page">
+
+    <div class="proj-action-bar">
+      <button class="btn brand" id="btn-nouveau-projet">+ Nouveau projet</button>
+      <button class="btn ghost" id="btn-reprendre-projet" style="display:none">Reprendre le dernier projet</button>
+      <div class="proj-action-bar-spacer"></div>
+      <button class="btn" id="btn-toggle-view">Vue liste</button>
+    </div>
 
     <div class="proj-page-head">
       <div>
-        <div class="eyebrow">CALDA</div>
         <h1 class="proj-page-title">Vos projets</h1>
-      </div>
-      <div class="proj-page-actions">
-        <button class="btn" id="btn-toggle-view">Vue liste</button>
-        <button class="btn brand" id="btn-nouveau-projet">+ Nouveau projet</button>
       </div>
     </div>
 
     <div class="card proj-form-card" id="form-nouveau-projet" style="display:none">
-      <div class="card-head"><h3>Nouveau projet</h3></div>
+      <div class="card-head"><h3 id="form-projet-titre">Nouveau projet</h3></div>
       <div class="card-body">
         <div class="field-row cols-2">
           <div class="field">
@@ -45,6 +62,17 @@
             <label class="lbl" for="proj-description">Description courte</label>
             <input type="text" class="input" id="proj-description" placeholder="ex : Réhabilitation 315 logements / 13 bâtiments" />
           </div>
+          <div class="field full">
+            <label class="lbl">Image du projet</label>
+            <div class="proj-form-image" id="proj-form-image-box">
+              <div class="proj-form-image-placeholder" id="proj-form-image-placeholder">Aucune image</div>
+              <img id="proj-form-image-preview" style="display:none" alt="" />
+            </div>
+            <div class="proj-form-image-actions">
+              <button type="button" class="btn sm ghost" id="btn-image-choisir">Choisir une image…</button>
+              <button type="button" class="btn sm ghost" id="btn-image-retirer" style="display:none">Retirer l'image</button>
+            </div>
+          </div>
         </div>
         <div class="proj-form-actions">
           <button class="btn brand" id="btn-creer-projet">Créer le projet</button>
@@ -55,23 +83,35 @@
 
     <div id="projet-list-container"></div>
 
+    <input type="file" id="proj-image-input" accept="image/*" style="display:none" />
+
   </div>
+
+  <footer class="app-footer">
+    <span class="app-footer-version">CALDA v0.1</span>
+    <a href="#" class="app-footer-link" id="lien-a-propos">À propos</a>
+  </footer>
 </div>
 <!-- /#page-projets -->
 
 <div id="main-content" style="display:none">
 
 <!-- ============================================================ -->
-<!-- FLUX header (corail)                                         -->
+<!-- En-tête CALDA (identique à la page de garde)                 -->
 <!-- ============================================================ -->
-<header class="flux-header">
-  <div class="crumbs">
-    <span class="brand-logo" id="brand">FL<span class="dim">UX</span></span>
-    <span class="sep">›</span>
-    <span class="proj" id="topbar-project-name">Nancy-Est · étude SST</span>
+<header class="app-header app-header--module">
+  <svg class="app-header-pipes" viewBox="0 0 1440 44" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <path d="M -50 12 L 300 12 L 300 34 L 700 34 L 700 8 L 1550 8" fill="none" stroke="var(--hot)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M 250 -10 L 250 24 L 650 24 L 650 38 L 1150 38 L 1150 16 L 1550 16" fill="none" stroke="var(--cold)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M 950 54 L 950 30 L 1320 30 L 1320 4 L 1550 4" fill="none" stroke="var(--ink-4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+  <div class="app-header-crumbs">
+    <span class="app-header-name" id="brand" title="Retour à la page de garde">CALDA</span>
+    <span class="app-header-sep">›</span>
+    <span class="app-header-project" id="topbar-project-name">Nancy-Est · étude SST</span>
   </div>
-  <div class="title">Outil MOE · Sous-Stations RCU</div>
-  <div class="actions">
+  <div class="app-header-tagline app-header-tagline--center">Outil MOE · Sous-stations RCU</div>
+  <div class="app-header-actions">
     <button class="h-btn" id="btn-retour-projets">← Projets</button>
     <button class="h-btn">☽ Nuit</button>
     <button class="h-btn">↗ Charger</button>
@@ -81,15 +121,15 @@
 
 <!-- Module nav -->
 <nav class="module-nav">
-  <a href="#" data-tab="hypotheses">
+  <a href="#" class="tab-btn" data-tab="hypotheses">
     <span class="step-num">M0</span>
     <span class="step-lbl">Hypothèses</span>
   </a>
-  <a href="#">
+  <a href="#" class="tab-btn" data-tab="bdd">
     <span class="step-num">M1</span>
     <span class="step-lbl">Référentiel SST</span>
   </a>
-  <a href="#" class="active" data-tab="m2">
+  <a href="#" class="tab-btn active" data-tab="puissance">
     <span class="step-num">M2</span>
     <span class="step-lbl">Puissances</span>
   </a>
@@ -338,9 +378,401 @@
 </section><!-- /tab-hypotheses -->
 
 <!-- ============================================================ -->
+<!-- Module 1 — Référentiel sous-stations                         -->
+<!-- ============================================================ -->
+<section id="tab-bdd" class="module-section">
+<div class="proj-page" style="max-width:1300px">
+
+  <div class="proj-page-head">
+    <div>
+      <div class="eyebrow">Module 1</div>
+      <h1 class="proj-page-title">Référentiel sous-stations <span class="pill gray" id="badge-count">0</span></h1>
+    </div>
+    <div class="proj-page-actions">
+      <button class="btn brand" id="btn-nouvelle-sst">+ Nouvelle SST</button>
+    </div>
+  </div>
+
+  <!-- Formulaire de saisie -->
+  <div class="card mb-3" id="form-sst-card" style="display:none">
+    <div class="card-head"><h3 id="form-sst-title">Nouvelle sous-station</h3></div>
+    <div class="card-body">
+
+      <div class="subhead"><h4>Identification</h4><div class="line"></div></div>
+      <div class="field-row cols-3">
+        <div class="field">
+          <label class="lbl" for="sst-ref">Référence SST *</label>
+          <input type="text" class="input" id="sst-ref" placeholder="ex : SST-01" />
+        </div>
+        <div class="field">
+          <label class="lbl" for="sst-statut">Statut</label>
+          <select class="input" id="sst-statut">
+            <option value="">— Choisir —</option>
+            <option value="À étudier">À étudier</option>
+            <option value="En cours">En cours</option>
+            <option value="Validé">Validé</option>
+            <option value="Terminé">Terminé</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl" for="sst-moa">Maître d'ouvrage (MOA)</label>
+          <input type="text" class="input" id="sst-moa" placeholder="ex : bailleur, collectivité, promoteur…" />
+        </div>
+        <div class="field full">
+          <label class="lbl" for="sst-batiments">Bâtiments desservis</label>
+          <input type="text" class="input" id="sst-batiments"
+                 placeholder="ex : Bât A, Bât B (Tour Pasteur + Résidence Voltaire)" />
+        </div>
+      </div>
+
+      <!-- ── Bloc État de la sous-station ── -->
+      <div class="card mt-3" id="sst-etats-card">
+        <div class="card-head"><h3>État de la sous-station</h3></div>
+        <div class="card-body">
+
+          <div class="sst-etat-tabs" role="tablist">
+            <button type="button" class="sst-etat-tab p2-mode-btn active" data-etat="existant"
+                    id="sst-etat-tab-existant" role="tab">Existant</button>
+            <button type="button" class="sst-etat-tab p2-mode-btn disabled" data-etat="projete"
+                    id="sst-etat-tab-projete" role="tab">Projeté</button>
+          </div>
+
+          <!-- Panel Existant -->
+          <div class="sst-etat-panel active" id="sst-etat-panel-existant" role="tabpanel">
+
+            <div class="sst-etat-cta" id="sst-etat-cta-existant" style="display:none;">
+              <p class="label mb-2">Aucune donnée saisie pour l'état Existant.</p>
+              <button type="button" class="btn brand" id="sst-ajouter-existant">
+                Ajouter l'état Existant
+              </button>
+            </div>
+
+            <div class="sst-etat-fields" id="sst-etat-fields-existant">
+              <div class="field-row cols-3">
+                <div class="field">
+                  <label class="lbl" for="sst-type--existant">Type de service</label>
+                  <select class="input" id="sst-type--existant">
+                    <option value="">— Choisir —</option>
+                    <option value="CH">CH — Chauffage seul</option>
+                    <option value="ECS">ECS — Eau chaude sanitaire seule</option>
+                    <option value="CH+ECS">CH+ECS — Chauffage + ECS</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="lbl" for="sst-type-sst--existant">Type de SST</label>
+                  <select class="input" id="sst-type-sst--existant">
+                    <option value="">— Choisir —</option>
+                    <option value="Primaire">Primaire</option>
+                    <option value="Secondaire">Secondaire</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="lbl" for="sst-energie-actuelle--existant">Énergie actuelle</label>
+                  <select class="input" id="sst-energie-actuelle--existant">
+                    <option value="">— Choisir —</option>
+                    <option value="RCU">RCU</option>
+                    <option value="Gaz">Gaz</option>
+                    <option value="Fioul">Fioul</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="subhead mt-2"><h4>Caractéristiques</h4><div class="line"></div></div>
+              <div class="field-row cols-3">
+                <div class="field">
+                  <label class="lbl" for="sst-type-batiment--existant">Type de bâtiment</label>
+                  <select class="input" id="sst-type-batiment--existant">
+                    <option value="">— Choisir —</option>
+                    <option value="Logement collectif">Logement collectif</option>
+                    <option value="Logement RT2012">Logement RT2012</option>
+                    <option value="Logement RE2020">Logement RE2020</option>
+                    <option value="Mixte logt + tertiaire">Mixte logt + tertiaire</option>
+                    <option value="Tertiaire — Bureaux">Tertiaire — Bureaux</option>
+                    <option value="Tertiaire — Crèche">Tertiaire — Crèche</option>
+                    <option value="Tertiaire — Enseignement">Tertiaire — Enseignement</option>
+                    <option value="Tertiaire — Foyer / cité universitaire">Tertiaire — Foyer / cité universitaire</option>
+                    <option value="Tertiaire — Hôtel 0-1*">Tertiaire — Hôtel 0-1*</option>
+                    <option value="Tertiaire — Hôtel 2*">Tertiaire — Hôtel 2*</option>
+                    <option value="Tertiaire — Hôtel 3*">Tertiaire — Hôtel 3*</option>
+                    <option value="Tertiaire — Hôtel 4-5*">Tertiaire — Hôtel 4-5*</option>
+                    <option value="Tertiaire — Restauration scolaire">Tertiaire — Restauration scolaire</option>
+                    <option value="Tertiaire — Restauration commerciale">Tertiaire — Restauration commerciale</option>
+                    <option value="Tertiaire — Sportif">Tertiaire — Sportif</option>
+                    <option value="Tertiaire — EHPAD / Maison de retraite">Tertiaire — EHPAD / Maison de retraite</option>
+                    <option value="Tertiaire — Hôpital actif">Tertiaire — Hôpital actif</option>
+                    <option value="Autre">Autre</option>
+                  </select>
+                </div>
+                <div class="field" id="sst-nb-logements-group--existant">
+                  <label class="lbl" for="sst-nb-logements--existant">Nb logements</label>
+                  <input type="number" class="input" id="sst-nb-logements--existant" step="1" min="0" />
+                </div>
+                <div class="field">
+                  <label class="lbl" for="sst-sref--existant">Surface de référence (m²)</label>
+                  <input type="number" class="input" id="sst-sref--existant" step="any" min="0" />
+                </div>
+              </div>
+
+              <div class="subhead mt-2"><h4>Surcharges SST</h4><div class="line"></div></div>
+              <p class="field-hint mb-2">Laisser vide pour hériter des valeurs du tableau Module 0 (par type de bâtiment).</p>
+              <div id="sst-ovr-m0-info" class="m0-info-strip" style="display:none"></div>
+              <div class="field-row cols-3">
+                <div class="field">
+                  <label class="lbl" for="sst-ovr-ratio--existant">Ratio W/m²</label>
+                  <input type="number" class="input" id="sst-ovr-ratio--existant" step="1" min="0"
+                         placeholder="hérité Module 0" />
+                </div>
+                <div class="field">
+                  <label class="lbl" for="sst-ovr-interm--existant">Intermittence</label>
+                  <input type="number" class="input" id="sst-ovr-interm--existant" step="0.05" min="0" max="1"
+                         placeholder="hérité Module 0" />
+                </div>
+                <div class="field">
+                  <label class="lbl" for="sst-ovr-duree--existant">Durée h/an</label>
+                  <input type="number" class="input" id="sst-ovr-duree--existant" step="100" min="0"
+                         placeholder="hérité Module 0" />
+                </div>
+                <div class="field">
+                  <label class="lbl" for="sst-ovr-hPointe--existant">H. pointe ECS (h/j)</label>
+                  <input type="number" class="input" id="sst-ovr-hPointe--existant" step="0.5" min="0"
+                         placeholder="hérité Module 0" />
+                </div>
+                <div class="field">
+                  <label class="lbl" for="sst-ovr-puEcs--existant">Puissance unitaire ECS (<span id="sst-ovr-puecs-unit">kW/logt</span>)</label>
+                  <input type="number" class="input" id="sst-ovr-puEcs--existant" step="0.1" min="0"
+                         placeholder="hérité Module 0" />
+                </div>
+              </div>
+
+              <div class="form-actions-etat">
+                <button type="button" class="btn danger"
+                        id="sst-supprimer-existant" style="display:none;">
+                  Supprimer cet état
+                </button>
+              </div>
+            </div><!-- /sst-etat-fields-existant -->
+          </div>
+
+          <!-- Panel Projeté -->
+          <div class="sst-etat-panel" id="sst-etat-panel-projete" role="tabpanel"
+               style="display:none;">
+
+            <div class="sst-etat-cta" id="sst-etat-cta-projete">
+              <p class="label mb-2">Aucune donnée saisie pour l'état Projeté.</p>
+              <button type="button" class="btn brand" id="sst-ajouter-projete">
+                Ajouter l'état Projeté
+              </button>
+            </div>
+
+            <div class="sst-etat-fields" id="sst-etat-fields-projete" style="display:none;">
+
+              <div class="field-row cols-3">
+                <div class="field">
+                  <label class="lbl" for="sst-type--projete">Type de service</label>
+                  <select class="input" id="sst-type--projete">
+                    <option value="">— Choisir —</option>
+                    <option value="CH">CH — Chauffage seul</option>
+                    <option value="ECS">ECS — Eau chaude sanitaire seule</option>
+                    <option value="CH+ECS">CH+ECS — Chauffage + ECS</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="lbl" for="sst-type-sst--projete">Type de SST</label>
+                  <select class="input" id="sst-type-sst--projete">
+                    <option value="">— Choisir —</option>
+                    <option value="Primaire">Primaire</option>
+                    <option value="Secondaire">Secondaire</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="subhead mt-2"><h4>Caractéristiques</h4><div class="line"></div></div>
+              <div class="field-row cols-3">
+                <div class="field">
+                  <label class="lbl" for="sst-type-batiment--projete">Type de bâtiment</label>
+                  <select class="input" id="sst-type-batiment--projete">
+                    <option value="">— Choisir —</option>
+                    <option value="Logement collectif">Logement collectif</option>
+                    <option value="Logement RT2012">Logement RT2012</option>
+                    <option value="Logement RE2020">Logement RE2020</option>
+                    <option value="Mixte logt + tertiaire">Mixte logt + tertiaire</option>
+                    <option value="Tertiaire — Bureaux">Tertiaire — Bureaux</option>
+                    <option value="Tertiaire — Crèche">Tertiaire — Crèche</option>
+                    <option value="Tertiaire — Enseignement">Tertiaire — Enseignement</option>
+                    <option value="Tertiaire — Foyer / cité universitaire">Tertiaire — Foyer / cité universitaire</option>
+                    <option value="Tertiaire — Hôtel 0-1*">Tertiaire — Hôtel 0-1*</option>
+                    <option value="Tertiaire — Hôtel 2*">Tertiaire — Hôtel 2*</option>
+                    <option value="Tertiaire — Hôtel 3*">Tertiaire — Hôtel 3*</option>
+                    <option value="Tertiaire — Hôtel 4-5*">Tertiaire — Hôtel 4-5*</option>
+                    <option value="Tertiaire — Restauration scolaire">Tertiaire — Restauration scolaire</option>
+                    <option value="Tertiaire — Restauration commerciale">Tertiaire — Restauration commerciale</option>
+                    <option value="Tertiaire — Sportif">Tertiaire — Sportif</option>
+                    <option value="Tertiaire — EHPAD / Maison de retraite">Tertiaire — EHPAD / Maison de retraite</option>
+                    <option value="Tertiaire — Hôpital actif">Tertiaire — Hôpital actif</option>
+                    <option value="Autre">Autre</option>
+                  </select>
+                </div>
+                <div class="field" id="sst-nb-logements-group--projete">
+                  <label class="lbl" for="sst-nb-logements--projete">Nb logements</label>
+                  <input type="number" class="input" id="sst-nb-logements--projete" step="1" min="0" />
+                </div>
+                <div class="field">
+                  <label class="lbl" for="sst-sref--projete">Surface de référence (m²)</label>
+                  <input type="number" class="input" id="sst-sref--projete" step="any" min="0" />
+                </div>
+              </div>
+
+              <div class="subhead mt-2"><h4>Surcharges SST</h4><div class="line"></div></div>
+              <p class="field-hint mb-2">Laisser vide pour hériter des valeurs du tableau Module 0 (par type de bâtiment).</p>
+              <div class="field-row cols-3">
+                <div class="field">
+                  <label class="lbl" for="sst-ovr-ratio--projete">Ratio W/m²</label>
+                  <input type="number" class="input" id="sst-ovr-ratio--projete" step="1" min="0"
+                         placeholder="hérité Module 0" />
+                </div>
+                <div class="field">
+                  <label class="lbl" for="sst-ovr-interm--projete">Intermittence</label>
+                  <input type="number" class="input" id="sst-ovr-interm--projete" step="0.05" min="0" max="1"
+                         placeholder="hérité Module 0" />
+                </div>
+                <div class="field">
+                  <label class="lbl" for="sst-ovr-duree--projete">Durée h/an</label>
+                  <input type="number" class="input" id="sst-ovr-duree--projete" step="100" min="0"
+                         placeholder="hérité Module 0" />
+                </div>
+                <div class="field">
+                  <label class="lbl" for="sst-ovr-hPointe--projete">H. pointe ECS (h/j)</label>
+                  <input type="number" class="input" id="sst-ovr-hPointe--projete" step="0.5" min="0"
+                         placeholder="hérité Module 0" />
+                </div>
+                <div class="field">
+                  <label class="lbl" for="sst-ovr-puEcs--projete">Puissance unitaire ECS (kW)</label>
+                  <input type="number" class="input" id="sst-ovr-puEcs--projete" step="0.1" min="0"
+                         placeholder="hérité Module 0" />
+                </div>
+              </div>
+
+              <div class="form-actions-etat">
+                <button type="button" class="btn danger" id="sst-supprimer-projete">
+                  Supprimer cet état
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /sst-etats-card -->
+
+      <div class="subhead mt-3"><h4>Localisation</h4><div class="line"></div></div>
+      <div class="field-row cols-3">
+        <div class="field full">
+          <label class="lbl" for="sst-adresse">Adresse</label>
+          <input type="text" class="input" id="sst-adresse" placeholder="ex : 12 rue des Lilas" />
+        </div>
+        <div class="field">
+          <label class="lbl" for="sst-cp">Code postal</label>
+          <input type="text" class="input" id="sst-cp" placeholder="ex : 94190" maxlength="10" />
+        </div>
+        <div class="field">
+          <label class="lbl" for="sst-ville">Ville</label>
+          <input type="text" class="input" id="sst-ville"
+                 placeholder="ex : commune de la sous-station" />
+        </div>
+        <div class="field">
+          <label class="lbl opt" for="sst-latitude">Latitude</label>
+          <input type="number" class="input" id="sst-latitude" step="0.000001"
+                 placeholder="ex : 48.7443" />
+        </div>
+        <div class="field">
+          <label class="lbl opt" for="sst-longitude">Longitude</label>
+          <input type="number" class="input" id="sst-longitude" step="0.000001"
+                 placeholder="ex : 2.4427" />
+        </div>
+      </div>
+
+      <div class="subhead mt-3"><h4>Contact</h4><div class="line"></div></div>
+      <div class="field-row cols-3">
+        <div class="field">
+          <label class="lbl" for="sst-contact">Nom contact</label>
+          <input type="text" class="input" id="sst-contact" placeholder="ex : Marie Dupont" />
+        </div>
+        <div class="field">
+          <label class="lbl" for="sst-telephone">Téléphone</label>
+          <input type="tel" class="input" id="sst-telephone" placeholder="ex : 06 12 34 56 78" />
+        </div>
+        <div class="field">
+          <label class="lbl" for="sst-email">Email</label>
+          <input type="email" class="input" id="sst-email" placeholder="ex : contact@bailleur.fr" />
+        </div>
+      </div>
+
+      <div class="subhead mt-3"><h4>Remarques</h4><div class="line"></div></div>
+      <div class="field-row cols-2">
+        <div class="field full">
+          <label class="lbl" for="sst-remarques">Équipements existants, observations…</label>
+          <textarea class="input" id="sst-remarques" style="min-height:70px"
+                    placeholder="ex : Échangeur ECS en comble — à remplacer…"></textarea>
+        </div>
+      </div>
+
+    </div><!-- /card-body -->
+
+    <div class="hyp-save-bar" style="margin:0 16px 16px 16px;">
+      <button class="btn brand" id="btn-valider-sst">Enregistrer</button>
+      <button class="btn ghost" id="btn-annuler-sst">Annuler</button>
+    </div>
+  </div><!-- /form-sst-card -->
+
+  <!-- Toggle Existant / Projeté (tableau) -->
+  <div class="tableau-toggle">
+    <button type="button" class="p2-mode-btn" data-etat="existant" id="toggle-etat-existant">Existant</button>
+    <button type="button" class="p2-mode-btn active" data-etat="projete" id="toggle-etat-projete">Projeté</button>
+    <div class="tableau-compteur-zone">
+      <span id="tableau-alerte" class="tableau-alerte" style="display:none;"></span>
+      <button type="button" id="btn-reset-filtres" class="btn sm ghost" style="display:none;">Réinitialiser</button>
+    </div>
+  </div>
+
+  <!-- Liste des SST -->
+  <div class="card">
+    <div class="table-wrapper">
+      <table class="sst-table" id="sst-table">
+        <thead>
+          <tr>
+            <th data-col-key="ref">Référence</th>
+            <th>Localisation</th>
+            <th data-col-key="typeSST">Type de SST</th>
+            <th data-col-key="typeService">Type</th>
+            <th data-col-key="typeBatiment">Type bâtiment</th>
+            <th data-col-key="sref">Sref (m²)</th>
+            <th data-col-key="nbLogements">Logements</th>
+            <th data-col-key="nature">Nature</th>
+            <th style="text-align:center" data-col-key="pCh">P CH (kW)</th>
+            <th style="text-align:center" data-col-key="pEcs">P ECS (kW)</th>
+            <th data-col-key="statut">Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="sst-tbody">
+          <tr>
+            <td colspan="12">
+              <div class="empty-state">
+                Aucune sous-station enregistrée.<br>
+                Cliquez sur <strong>+ Nouvelle SST</strong> pour commencer.
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+</section><!-- /tab-bdd -->
+
+<!-- ============================================================ -->
 <!-- Module 2 — Puissances (maquette existante, inchangée)        -->
 <!-- ============================================================ -->
-<section id="tab-m2" class="module-section active">
+<section id="tab-puissance" class="module-section active">
 
 <!-- ============================================================ -->
 <!-- Sticky : identification SST                                  -->
@@ -1312,7 +1744,7 @@ P = 229 × 500/7 × 1,163 × 45 / 3<br>
 <!-- Sticky bottom : bilan global — supprimé                      -->
 <!-- ============================================================ -->
 
-</section><!-- /tab-m2 -->
+</section><!-- /tab-puissance -->
 
 </div>
 <!-- /#main-content -->
@@ -1321,6 +1753,7 @@ P = 229 × 500/7 × 1,163 × 45 / 3<br>
 
 <script src="js/validation.js"></script>
 <script src="js/hypotheses.js"></script>
+<script src="js/bdd.js"></script>
 <script src="js/projects.js"></script>
 
 </body></html>

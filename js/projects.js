@@ -72,6 +72,24 @@ function showLandingPage() {
   document.getElementById('main-content').style.display = 'none';
 
   renderProjectList();
+  _majBoutonReprendre();
+}
+
+// ── Reprendre le dernier projet ouvert ─────────────────────────────────────
+// flux_last_project n'est jamais effacé par showLandingPage() (contrairement
+// à flux_current_project) : il survit au retour sur la page de garde.
+function _majBoutonReprendre() {
+  const btn = document.getElementById('btn-reprendre-projet');
+  if (!btn) return;
+  const lastId = localStorage.getItem('flux_last_project');
+  const proj = lastId && getProjects().find(p => p.id === lastId);
+  if (proj) {
+    btn.textContent = `Reprendre « ${proj.nom} »`;
+    btn.dataset.id = proj.id;
+    btn.style.display = '';
+  } else {
+    btn.style.display = 'none';
+  }
 }
 
 function openProject(id, { restoreModule = false } = {}) {
@@ -81,6 +99,7 @@ function openProject(id, { restoreModule = false } = {}) {
 
   setCurrentProjectId(id);
   window.currentProjectId = id;
+  localStorage.setItem('flux_last_project', id);
 
   const data = getProjectData(id);
   window.sousStations = Array.isArray(data.sousStations) ? data.sousStations : [];
@@ -102,17 +121,10 @@ function openProject(id, { restoreModule = false } = {}) {
   const bddSect = document.getElementById('tab-bdd');
   if (bddSect) bddSect.classList.add('active');
 
-  // Pont temporaire tant que M1 n'est pas porté : à défaut de section active
-  // (tab-bdd n'existe pas encore), retomber sur M2.
-  if (!document.querySelector('.module-section.active')) {
-    document.querySelectorAll('.module-nav a[data-tab]').forEach(a => a.classList.toggle('active', a.dataset.tab === 'm2'));
-    document.getElementById('tab-m2')?.classList.add('active');
-  }
-
   if (typeof _chargerEtatAffichage === 'function') _chargerEtatAffichage();
   if (typeof _chargerTri === 'function') _chargerTri();
   window.tableauFiltres = {};
-  // M1/M2 pas encore portés dans CALDA — no-op tant que ces fonctions n'existent pas.
+  // M2 pas encore porté dans CALDA — no-op tant que ces fonctions n'existent pas.
   if (typeof rendreTableau === 'function') rendreTableau();
   if (typeof chargerHypothesesForm === 'function') chargerHypothesesForm();
   if (typeof refreshSSTSelect === 'function') refreshSSTSelect();
@@ -453,6 +465,7 @@ function _renderV1(projects, container) {
       <span class="proj-table-nsst">${nSST}</span>
       <span class="proj-table-actions">
         <button class="btn sm brand-outline" onclick="openProject('${p.id}')">Ouvrir</button>
+        <button class="btn sm ghost" onclick="showEditProjectForm('${p.id}')">Modifier</button>
         <button class="btn sm ghost" onclick="duplicateProject('${p.id}')">Dupliquer</button>
         <button class="btn sm danger" onclick="deleteProject('${p.id}')">Supprimer</button>
       </span>
@@ -477,6 +490,9 @@ function _renderV2(projects, container) {
     const data = getProjectData(p.id);
     const nSST = Array.isArray(data.sousStations) ? data.sousStations.length : 0;
     return `<div class="card proj-card" onclick="openProject('${p.id}')">
+      <div class="proj-card-image">
+        ${p.image ? `<img src="${p.image}" alt="" />` : `<div class="proj-card-image-placeholder">Aucune image</div>`}
+      </div>
       <div class="proj-card-top">
         <div class="proj-card-nom">${_esc(p.nom)}</div>
         <span class="pill gray proj-card-nsst">${nSST} SST</span>
@@ -486,6 +502,7 @@ function _renderV2(projects, container) {
       <div class="proj-card-meta">${p.dateCreation ? p.dateCreation.slice(0, 10) : '—'}</div>
       <div class="proj-card-actions" onclick="event.stopPropagation()">
         <button class="btn sm brand-outline" onclick="openProject('${p.id}')">Ouvrir</button>
+        <button class="btn sm ghost" onclick="showEditProjectForm('${p.id}')">Modifier</button>
         <button class="btn sm ghost" onclick="duplicateProject('${p.id}')">Dupliquer</button>
         <button class="btn sm danger" onclick="deleteProject('${p.id}')">Supprimer</button>
       </div>
@@ -500,13 +517,122 @@ function _esc(str) {
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-// ── Formulaire nouveau projet ─────────────────────────────────────────────
+// ── Image par projet ────────────────────────────────────────────────────
+// Redimensionnée (600px max) et recompressée en JPEG avant stockage base64
+// dans flux_projects — le localStorage du navigateur n'offre que ~5 Mo.
+// L'image choisie est mise en attente (_formImageDataUrl) et n'est écrite
+// dans flux_projects qu'à l'enregistrement du formulaire (Créer/Enregistrer).
+const IMAGE_MAX_DIMENSION = 600;
+const IMAGE_LIMITE_OCTETS = 250 * 1024; // marge large : un JPEG 600px à qualité 0.7 fait typiquement 40-120 Ko
+const IMAGE_PALIERS_QUALITE = [0.7, 0.5, 0.3];
+
+// undefined = pas de changement (édition : on garde l'image existante) ;
+// string = nouvelle image en attente ; null = suppression explicite.
+let _formImageDataUrl = undefined;
+
+function declencherChoixImageForm() {
+  document.getElementById('proj-image-input')?.click();
+}
+
+function retirerImageForm() {
+  _formImageDataUrl = null;
+  _majApercuImageForm(null);
+}
+
+function _majApercuImageForm(url) {
+  const img         = document.getElementById('proj-form-image-preview');
+  const placeholder = document.getElementById('proj-form-image-placeholder');
+  const btnRetirer  = document.getElementById('btn-image-retirer');
+  if (!img || !placeholder) return;
+  if (url) {
+    img.src = url;
+    img.style.display = '';
+    placeholder.style.display = 'none';
+    if (btnRetirer) btnRetirer.style.display = '';
+  } else {
+    img.removeAttribute('src');
+    img.style.display = 'none';
+    placeholder.style.display = '';
+    if (btnRetirer) btnRetirer.style.display = 'none';
+  }
+}
+
+function _traiterFichierImageForm(file) {
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    afficherToast('Ce fichier n\'est pas reconnu comme une image.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > IMAGE_MAX_DIMENSION || h > IMAGE_MAX_DIMENSION) {
+        if (w >= h) { h = Math.round(h * IMAGE_MAX_DIMENSION / w); w = IMAGE_MAX_DIMENSION; }
+        else        { w = Math.round(w * IMAGE_MAX_DIMENSION / h); h = IMAGE_MAX_DIMENSION; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+      let dataUrl = null;
+      for (const qualite of IMAGE_PALIERS_QUALITE) {
+        const essai = canvas.toDataURL('image/jpeg', qualite);
+        if (essai.length * 0.75 <= IMAGE_LIMITE_OCTETS) { dataUrl = essai; break; }
+        dataUrl = essai; // garde le dernier palier essayé (le plus compressé) en dernier recours
+      }
+      if (!dataUrl || dataUrl.length * 0.75 > IMAGE_LIMITE_OCTETS) {
+        afficherToast('Image trop volumineuse, réessayez avec une image plus simple.');
+        return;
+      }
+
+      _formImageDataUrl = dataUrl;
+      _majApercuImageForm(dataUrl);
+    };
+    img.onerror = () => afficherToast('Impossible de lire cette image.');
+    img.src = reader.result;
+  };
+  reader.onerror = () => afficherToast('Impossible de lire ce fichier.');
+  reader.readAsDataURL(file);
+}
+
+// ── Formulaire création / édition de projet ────────────────────────────────
+// Un seul formulaire pour les deux usages : _editingProjectId distingue
+// création (null) et édition (id du projet modifié).
+let _editingProjectId = null;
 
 function showNewProjectForm() {
+  _editingProjectId = null;
+  _formImageDataUrl = undefined;
+  document.getElementById('form-projet-titre').textContent = 'Nouveau projet';
+  document.getElementById('btn-creer-projet').textContent = 'Créer le projet';
+  _majApercuImageForm(null);
   document.getElementById('form-nouveau-projet').style.display = '';
   document.getElementById('btn-nouveau-projet').style.display = 'none';
   const dateEl = document.getElementById('proj-date');
   if (dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0, 10);
+  document.getElementById('proj-nom')?.focus();
+}
+
+function showEditProjectForm(id) {
+  const proj = getProjects().find(p => p.id === id);
+  if (!proj) return;
+  _editingProjectId = id;
+  _formImageDataUrl = undefined;
+  document.getElementById('form-projet-titre').textContent = 'Modifier le projet';
+  document.getElementById('btn-creer-projet').textContent = 'Enregistrer';
+  const setV = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = v || ''; };
+  setV('proj-nom', proj.nom);
+  setV('proj-moa', proj.moa);
+  setV('proj-date', proj.dateCreation);
+  setV('proj-description', proj.description);
+  _majApercuImageForm(proj.image || null);
+  document.getElementById('form-nouveau-projet').style.display = '';
+  document.getElementById('btn-nouveau-projet').style.display = 'none';
+  document.getElementById('form-nouveau-projet').scrollIntoView({ behavior: 'smooth', block: 'start' });
   document.getElementById('proj-nom')?.focus();
 }
 
@@ -519,6 +645,9 @@ function hideNewProjectForm() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  _editingProjectId = null;
+  _formImageDataUrl = undefined;
+  _majApercuImageForm(null);
 }
 
 function creerProjet() {
@@ -533,16 +662,41 @@ function creerProjet() {
     return;
   }
 
-  const id = generateProjectId();
-  const proj = {
-    id,
-    nom,
-    moa:         (document.getElementById('proj-moa')?.value || '').trim(),
-    description: (document.getElementById('proj-description')?.value || '').trim(),
-    dateCreation: document.getElementById('proj-date')?.value || new Date().toISOString().slice(0, 10),
-  };
+  const moa         = (document.getElementById('proj-moa')?.value || '').trim();
+  const description = (document.getElementById('proj-description')?.value || '').trim();
+  const dateCreation = document.getElementById('proj-date')?.value || new Date().toISOString().slice(0, 10);
 
   const projects = getProjects();
+
+  // ── Édition d'un projet existant ─────────────────────────────────────
+  if (_editingProjectId) {
+    const proj = projects.find(p => p.id === _editingProjectId);
+    if (!proj) { hideNewProjectForm(); return; }
+    proj.nom = nom;
+    proj.moa = moa;
+    proj.description = description;
+    proj.dateCreation = dateCreation;
+    if (_formImageDataUrl !== undefined) {
+      if (_formImageDataUrl === null) delete proj.image;
+      else proj.image = _formImageDataUrl;
+    }
+    try {
+      saveProjects(projects);
+    } catch (e) {
+      afficherToast('Espace de stockage insuffisant pour enregistrer les modifications.');
+      return;
+    }
+    hideNewProjectForm();
+    renderProjectList();
+    afficherToast(`Projet "${nom}" modifié.`);
+    return;
+  }
+
+  // ── Création d'un nouveau projet ─────────────────────────────────────
+  const id = generateProjectId();
+  const proj = { id, nom, moa, description, dateCreation };
+  if (_formImageDataUrl) proj.image = _formImageDataUrl;
+
   projects.push(proj);
   saveProjects(projects);
 
@@ -633,6 +787,19 @@ function initProjects() {
   document.getElementById('btn-retour-projets').addEventListener('click', showLandingPage);
   document.getElementById('brand').addEventListener('click', showLandingPage);
 
+  document.getElementById('btn-reprendre-projet')?.addEventListener('click', function () {
+    const id = this.dataset.id;
+    if (id) openProject(id);
+  });
+
+  document.getElementById('btn-image-choisir')?.addEventListener('click', declencherChoixImageForm);
+  document.getElementById('btn-image-retirer')?.addEventListener('click', retirerImageForm);
+  document.getElementById('proj-image-input')?.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) _traiterFichierImageForm(file);
+    e.target.value = '';
+  });
+
   // Restaurer le projet actif si disponible
   const savedId = getCurrentProjectId();
   if (savedId && getProjects().find(p => p.id === savedId)) {
@@ -642,21 +809,42 @@ function initProjects() {
   }
 }
 
-// ── Bascule d'onglets entre modules (module-nav) ──────────────────────────
-// M1/M3 n'ont pas encore de section — leurs liens restent inertes.
+// ── Navigation entre modules ───────────────────────────────────────────────
+// Rapatrié depuis puissance.js (FLUX) — fonction de navigation générique,
+// pas de logique de calcul M2. Garde-fou supplémentaire sur _p2ConfirmLeaveDirty
+// (inexistant tant que M2 n'est pas porté), même style que les deux autres gardes.
+function allerOnglet(tabId) {
+  if (tabId !== 'bdd' && typeof _confirmLeaveDirty === 'function' && !_confirmLeaveDirty()) return;
+  if (tabId !== 'puissance' && typeof _p2ConfirmLeaveDirty === 'function' && !_p2ConfirmLeaveDirty()) return;
+  if (tabId !== 'hypotheses' && typeof window._p0ConfirmLeaveDirty === 'function' && !window._p0ConfirmLeaveDirty()) return;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.module-section').forEach(s => s.classList.remove('active'));
+  const btn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+  if (btn) btn.classList.add('active');
+  const sec = document.getElementById('tab-' + tabId);
+  if (sec) sec.classList.add('active');
+  if (window.currentProjectId) {
+    localStorage.setItem('flux_moduleActif_' + window.currentProjectId, tabId);
+  }
+}
+
+// M3 n'a pas encore de section — son lien reste inerte.
 function initModuleNav() {
   document.querySelectorAll('.module-nav a[data-tab]').forEach(link => {
     link.addEventListener('click', e => {
       e.preventDefault();
-      document.querySelectorAll('.module-nav a[data-tab]').forEach(a => a.classList.toggle('active', a === link));
-      document.querySelectorAll('.module-section').forEach(s => s.classList.remove('active'));
-      document.getElementById('tab-' + link.dataset.tab)?.classList.add('active');
+      allerOnglet(link.dataset.tab);
+      if (link.dataset.tab === 'puissance') {
+        if (typeof refreshSSTSelect === 'function') refreshSSTSelect();
+        if (typeof p2SstRef !== 'undefined' && p2SstRef && typeof chargerDonneeSST === 'function') chargerDonneeSST(p2SstRef);
+      }
       window.scrollTo({ top: 0, behavior: 'instant' });
     });
   });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  initBDD();
   initHypotheses();
   initModuleNav();
   initProjects();
