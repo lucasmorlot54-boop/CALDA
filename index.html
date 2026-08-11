@@ -1,0 +1,3054 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+  
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>FLUX — Module 2 · Estimation &amp; dimensionnement · SST-001</title>
+<style>
+  /* ---------- Reset & base ---------- */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #1b1f23;
+    background: #fafafa;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  :root {
+    /* Neutres */
+    --bg:        #fafafa;
+    --panel:     #ffffff;
+    --panel-2:   #f5f5f5;
+    --line:      #e3e3e3;
+    --line-2:    #ececec;
+    --ink:       #1b1f23;
+    --ink-2:     #4a5159;
+    --ink-3:     #7a828c;
+    --ink-4:     #aab1ba;
+
+    /* Marque FLUX (corail) */
+    --brand:     #e07b62;
+    --brand-2:   #d96a4f;
+    --brand-ink: #8a3a25;
+    --brand-soft:#fbe6df;
+
+    /* Thermique */
+    --hot:       #d96a4f;   /* primaire chaud, départ secondaire (aligné brand) */
+    --hot-soft:  #fbe6df;
+    --hot-ink:   #8a3a25;
+    --cold:      #2c6cb8;   /* retour froid */
+    --cold-soft: #dde9f6;
+    --cold-ink:  #1a3f72;
+
+    /* État projeté (vert) */
+    --proj:      #2a8b5a;
+    --proj-soft: #d9efe1;
+    --proj-ink:  #14513b;
+
+    /* Accent (résultats clés) — neutre */
+    --accent:    #2a2e35;   /* ink foncé */
+    --accent-soft:#f0f0f0;
+    --accent-ink:#1b1f23;
+
+    /* Pills système FLUX (Pastel vivid) */
+    --pill-green:    #c6e0c4;  --pill-green-ink:   #4a7f50;
+    --pill-blue:     #c8d8f4;  --pill-blue-ink:    #2d4e96;
+    --pill-orange:   #fbd8b8;  --pill-orange-ink:  #9c4e22;
+    --pill-purple:   #ccc1e8;  --pill-purple-ink:  #4a2f78;
+    --pill-yellow:   #f1d997;  --pill-yellow-ink:  #6a510a;
+    --pill-gray:     #d0d3da;  --pill-gray-ink:    #3a3d47;
+    --pill-coral:    #ecc5c0;  --pill-coral-ink:   #8c3a30;
+    --pill-teal:     #bee0d4;  --pill-teal-ink:    #14593e;
+
+    /* Sémantique */
+    --warn:      #92400e;
+    --warn-soft: #fdf3e1;
+    --muted-bg:  #f3f4f6;
+
+    --r: 4px;
+    --r-lg: 6px;
+    --shadow-s: 0 1px 0 rgba(20,24,33,.04), 0 1px 2px rgba(20,24,33,.04);
+  }
+
+  /* ---------- Typo ---------- */
+  .mono { font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif; font-variant-numeric: tabular-nums; }
+  .num  { font-variant-numeric: tabular-nums; }
+  .eyebrow {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+  .label { font-size: 11px; color: var(--ink-2); }
+  .opt::after {
+    content: "OPT";
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9px;
+    color: var(--ink-4);
+    background: transparent;
+    border: 1px solid var(--line);
+    padding: 1px 4px;
+    margin-left: 6px;
+    border-radius: 2px;
+    letter-spacing: .04em;
+    vertical-align: 1px;
+  }
+
+  /* ---------- Layout ---------- */
+  .app {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 24px 96px 24px;
+  }
+
+  /* ---------- FLUX header (document technique) ---------- */
+  .flux-header {
+    position: sticky; top: 0; z-index: 50;
+    background: #fdfcf9;
+    color: var(--ink);
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    height: 52px;
+    border-bottom: 1px solid var(--line);
+  }
+  .flux-header::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--brand);
+  }
+  .flux-header .crumbs {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+  }
+  .flux-header .crumbs .brand-logo {
+    font-family: "Inter", sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -.02em;
+    color: var(--brand);
+    margin-right: 4px;
+  }
+  .flux-header .crumbs .brand-logo .dim { color: var(--brand); opacity: .45; }
+  .flux-header .crumbs .sep { color: var(--ink-4); }
+  .flux-header .crumbs .proj {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .flux-header .crumbs .proj::before {
+    content: "";
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-soft);
+    margin-right: 8px;
+    vertical-align: 1px;
+  }
+  .flux-header .title {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    text-align: center;
+  }
+  .flux-header .actions { display: flex; gap: 6px; justify-content: flex-end; }
+  .flux-header .actions .h-btn {
+    height: 28px;
+    padding: 0 12px;
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: var(--r);
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .flux-header .actions .h-btn:hover {
+    background: var(--panel-2);
+    color: var(--ink);
+    border-color: var(--ink-4);
+  }
+  .flux-header .actions .h-btn.solid {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+    font-weight: 600;
+  }
+  .flux-header .actions .h-btn.solid:hover {
+    background: var(--brand-2);
+    border-color: var(--brand-2);
+  }
+
+  /* Module nav — clean horizontal stepper */
+  .module-nav {
+    position: sticky; top: 52px; z-index: 45;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    padding: 0 24px;
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    min-height: 44px;
+  }
+  .module-nav a {
+    color: var(--ink-3);
+    font-size: 12.5px;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 0 18px 0 0;
+    margin-right: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    transition: color .15s ease;
+  }
+  .module-nav a:last-of-type { margin-right: 0; padding-right: 0; }
+  .module-nav a .step-num {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--ink-4);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .module-nav a .step-lbl {
+    line-height: 1;
+  }
+  .module-nav a .step-status {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-4);
+    margin-left: 2px;
+  }
+  /* Separator between items */
+  .module-nav a:not(:last-of-type)::after {
+    content: "";
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px; height: 3px;
+    background: var(--ink-4);
+    border-radius: 50%;
+    opacity: .4;
+  }
+  .module-nav a:hover { color: var(--ink-2); }
+  .module-nav a:hover .step-num { color: var(--ink-3); }
+
+  .module-nav a.complete .step-num { color: var(--proj); }
+  .module-nav a.complete .step-status { color: var(--proj); }
+  .module-nav a.complete {
+    color: var(--ink-2);
+  }
+
+  .module-nav a.active {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .module-nav a.active .step-num { color: var(--brand); }
+  .module-nav a.active .step-status { color: var(--brand); }
+  /* Subtle underline under active item */
+  .module-nav a.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: calc(100% - 18px);
+    height: 2px;
+    background: var(--brand);
+    border-radius: 1px 1px 0 0;
+  }
+
+  .module-nav .nav-tail {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    color: var(--ink-3);
+    font-size: 11.5px;
+  }
+  .module-nav .nav-tail .meta b {
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+
+  /* ---------- Sticky identification bar ---------- */
+  .id-bar {
+    position: sticky; top: 91px; z-index: 40;
+    /* offset par le header non-sticky au-dessus */
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    padding: 14px 24px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 20px;
+    align-items: center;
+  }
+  .id-bar .id-block { display: flex; align-items: center; gap: 14px; }
+  .id-bar .sst-tag {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    border-radius: 3px;
+    letter-spacing: .02em;
+  }
+  .id-bar .addr { font-size: 13px; color: var(--ink); }
+  .id-bar .addr .sub { color: var(--ink-3); font-size: 11.5px; }
+  .id-bar .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 3px 8px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink-2);
+    background: var(--panel-2);
+  }
+  .tag .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-4); }
+  .tag.status-active .dot { background: #2f8b4a; }
+  .tag.hot { color: var(--hot-ink); border-color: #f1c7a8; background: var(--hot-soft); }
+  .tag.cold { color: var(--cold-ink); border-color: #b7c5ee; background: var(--cold-soft); }
+
+  /* Pills système Module 1 (pastel vivid + bordure) */
+  .pill {
+    display: inline-flex; align-items: center;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 5px;
+    line-height: 1.4;
+    white-space: nowrap;
+    border: 1px solid;
+    letter-spacing: .02em;
+  }
+  .pill.green  { background: var(--pill-green);  color: var(--pill-green-ink);  border-color: #6a9d6a; }
+  .pill.blue   { background: var(--pill-blue);   color: var(--pill-blue-ink);   border-color: #5a7bb0; }
+  .pill.orange { background: var(--pill-orange); color: var(--pill-orange-ink); border-color: #c08560; }
+  .pill.purple { background: var(--pill-purple); color: var(--pill-purple-ink); border-color: #8e75c2; }
+  .pill.yellow { background: var(--pill-yellow); color: var(--pill-yellow-ink); border-color: #c89c3d; }
+  .pill.gray   { background: var(--pill-gray);   color: var(--pill-gray-ink);   border-color: #9498a0; }
+  .pill.coral  { background: var(--pill-coral);  color: var(--pill-coral-ink);  border-color: #c08379; }
+  .pill.teal   { background: var(--pill-teal);   color: var(--pill-teal-ink);   border-color: #6aa691; }
+
+  /* Existant / Projeté toggle — contrôle principal */
+  .seg-toggle {
+    display: inline-flex;
+    padding: 3px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--panel-2);
+    gap: 2px;
+  }
+  .seg-toggle button {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    padding: 7px 18px;
+    font-size: 13px;
+    color: var(--ink-3);
+    font-weight: 500;
+    letter-spacing: .005em;
+    border-radius: 999px;
+    transition: background-color .15s ease, color .15s ease, box-shadow .15s ease;
+  }
+  .seg-toggle button:hover:not([aria-pressed="true"]) {
+    color: var(--ink);
+  }
+  .seg-toggle button[aria-pressed="true"] {
+    background: #fff;
+    color: var(--hot-ink);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(20,24,33,.08), 0 0 0 1px rgba(217,106,79,.18);
+  }
+
+  /* Mod badge (origine donnée) */
+  .mod-badge {
+    display: inline-block;
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10.5px;
+    padding: 2px 8px;
+    margin-left: 6px;
+    border-radius: 5px;
+    background: #dde7f3;
+    color: #2d4e96;
+    border: 1px solid #5a7bb0;
+    letter-spacing: .02em;
+    font-weight: 700;
+    vertical-align: 1px;
+    line-height: 1.2;
+  }
+  .mod-badge.m0 { background: #dde7f3; color: #2d4e96; border-color: #5a7bb0; }
+  .mod-badge.m1 { background: #d6ebd3; color: #36733f; border-color: #6a9d6a; }
+
+  .src-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px;
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    color: var(--ink-2);
+    background: #fff;
+    cursor: pointer;
+  }
+  .src-pill[aria-pressed="true"] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .read-from {
+    font-size: 10px;
+    color: var(--ink-3);
+    font-style: italic;
+    margin-top: 2px;
+  }
+
+  textarea.input {
+    width: 100%;
+    min-height: 70px;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: #fff;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--ink);
+    resize: vertical;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 30px; padding: 0 12px;
+    font-size: 12px; font-weight: 500;
+    border-radius: var(--r);
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .btn:hover { border-color: #cfd3d9; }
+  .btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .btn.brand { background: var(--brand); color: #fff; border-color: var(--brand); font-weight: 600; }
+  .btn.brand:hover { background: var(--brand-2); border-color: var(--brand-2); }
+  .btn.brand-outline { background: #fff; color: var(--brand-2); border-color: var(--brand); }
+  .btn.brand-outline:hover { background: var(--brand-soft); }
+  .btn.ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
+  .btn.sm { height: 24px; padding: 0 8px; font-size: 11px; }
+
+  /* ---------- Hypotheses sticky bar ---------- */
+  .hyp-bar {
+    margin-top: 18px;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+  }
+  .hyp-bar .hyp-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 24px;
+    border-bottom: 1px solid var(--line-2);
+    cursor: pointer;
+    user-select: none;
+  }
+  .hyp-bar .hyp-head .chev {
+    width: 14px; height: 14px; display: inline-block;
+    transition: transform .15s ease;
+  }
+  .hyp-bar.collapsed .chev { transform: rotate(-90deg); }
+  .hyp-bar .hyp-head h3 { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .01em; }
+  .hyp-bar .hyp-head .summary { font-size: 11.5px; color: var(--ink-3); }
+  .hyp-bar.collapsed .hyp-body { display: none; }
+  .hyp-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr;
+    gap: 0;
+    padding: 14px 24px 16px 24px;
+  }
+  .hyp-col { padding: 0 18px; border-right: 1px solid var(--line-2); }
+  .hyp-col:first-child { padding-left: 0; }
+  .hyp-col:last-child  { border-right: 0; padding-right: 0; }
+  .hyp-col h4 {
+    margin: 0 0 8px 0;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+  .kv-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 3px 0; }
+  .kv-row .k { color: var(--ink-2); font-size: 11.5px; }
+  .kv-row .v { font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 11.5px; color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .kv-row .v .unit { color: var(--ink-3); margin-left: 2px; }
+
+  /* ---------- Tabs (segmented, prominent, sticky) ---------- */
+  .tabs-wrapper {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 22px 0 0 0;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    overflow: hidden;
+    position: sticky;
+    top: 152px;
+    z-index: 25;
+  }
+  .tabs-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .tabs-group-label {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 6px 14px 0 14px;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--line);
+    line-height: 1.6;
+  }
+  .tabs-divider {
+    width: 1px;
+    background: var(--line);
+    align-self: stretch;
+  }
+  .tabs {
+    display: inline-flex;
+    gap: 0;
+    padding: 0;
+    margin: 0;
+    background: #fff;
+  }
+  .tab {
+    position: relative;
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 22px;
+    background: transparent;
+    border: 0;
+    border-right: 1px solid var(--line);
+    border-radius: 0;
+    cursor: pointer;
+    color: var(--ink-3);
+    font-size: 14px;
+    font-weight: 500;
+    transform: none;
+  }
+  .tab:last-child { border-right: 0; }
+  .tab:hover { color: var(--ink); background: var(--panel-2); }
+  .tab .label-l {
+    font-weight: 600;
+    letter-spacing: .01em;
+    font-size: 14px;
+    display: inline-flex; align-items: center; gap: 9px;
+  }
+  .tab .label-l::before {
+    content: "";
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--ink-4);
+  }
+  .tab[data-tab="ch"] .label-l::before { background: var(--hot); box-shadow: 0 0 0 2px rgba(217,106,79,.15); }
+  .tab[data-tab="ecs"] .label-l::before { background: var(--cold); box-shadow: 0 0 0 2px rgba(44,108,184,.15); }
+  .tab[data-tab="projete"] .label-l::before {
+    background: var(--proj);
+    box-shadow: 0 0 0 2px rgba(42,139,90,.15);
+  }
+  .tab .sep { display: none; }
+  .tab .val {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .tab[aria-selected="true"] {
+    color: var(--ink);
+    border-color: var(--line);
+  }
+  .tab[aria-selected="true"]::before {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+    height: 3px;
+  }
+  /* CH actif — corail */
+  .tab[data-tab="ch"][aria-selected="true"] { background: var(--hot-soft); }
+  .tab[data-tab="ch"][aria-selected="true"] .val { color: var(--hot-ink); }
+  .tab[data-tab="ch"][aria-selected="true"]::before { background: var(--hot); }
+  .tab[data-tab="ch"][aria-selected="true"] .pill {
+    background: #fff;
+    color: var(--hot-ink);
+    border: 1px solid #f0c7b5;
+  }
+  /* ECS actif — bleu */
+  .tab[data-tab="ecs"][aria-selected="true"] { background: var(--cold-soft); }
+  .tab[data-tab="ecs"][aria-selected="true"] .val { color: var(--cold-ink); }
+  .tab[data-tab="ecs"][aria-selected="true"]::before { background: var(--cold); }
+  .tab[data-tab="ecs"][aria-selected="true"] .pill {
+    background: #fff;
+    color: var(--cold-ink);
+    border: 1px solid #b7c5ee;
+  }
+  /* Projeté actif — vert */
+  .tab[data-tab="projete"] .val { color: var(--proj-ink); font-style: italic; font-weight: 500; }
+  .tab[data-tab="projete"][aria-selected="true"] { background: var(--proj-soft); }
+  .tab[data-tab="projete"][aria-selected="true"] .val { color: var(--proj-ink); font-style: italic; }
+  .tab[data-tab="projete"][aria-selected="true"]::before { background: var(--proj); }
+  .tab .pill {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: var(--pill-gray);
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+
+  /* ---------- Tab content ---------- */
+  .tab-panel { display: none; padding-top: 18px; }
+  .tab-panel[data-active="true"] { display: block; }
+
+  /* État projeté — banner above panels */
+  .state-banner {
+    margin: 18px 0 0 0;
+    padding: 10px 14px;
+    background: var(--panel-2);
+    border: 1px dashed var(--ink-4);
+    border-radius: var(--r-lg);
+    font-size: 12px;
+    color: var(--ink-2);
+    display: none;
+  }
+  body[data-state="projete"] .state-banner { display: block; }
+  body[data-state="projete"] .state-banner .label {
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    font-size: 11px;
+    margin-right: 8px;
+  }
+  /* Elements only shown in Projeté state */
+  .projete-only { display: none !important; }
+  body[data-state="projete"] .projete-only { display: block !important; }
+  .projete-only-inline { display: none !important; }
+  body[data-state="projete"] .projete-only-inline { display: inline !important; }
+  /* Elements only shown in Existant state */
+  body[data-state="projete"] .existant-only { display: none !important; }
+
+  /* Initialisation depuis l'état existant (projeté only) */
+  .reuse-init .reuse-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .reuse-init .reuse-combo {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 14px;
+    align-items: center;
+    margin-top: 2px;
+  }
+  .reuse-init .reuse-combo-sep {
+    width: 1px;
+    align-self: stretch;
+    background: var(--line);
+    margin: 4px 0;
+  }
+  .reuse-init .reuse-combo-item .reuse-val { font-size: 22px; }
+  .reuse-init .reuse-combo-sub { display: none; }
+  .reuse-init .reuse-type-tag {
+    display: inline-block;
+    margin-left: 8px;
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--cold-ink);
+    background: var(--cold-soft);
+    border: 1px solid #cad8ee;
+    padding: 1px 7px;
+    border-radius: 3px;
+    font-weight: 500;
+    vertical-align: middle;
+  }
+  .reuse-init .reuse-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    cursor: pointer;
+    background: #fff;
+    transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
+  }
+  .reuse-init .reuse-row:hover { border-color: var(--ink-4); }
+  .reuse-init .reuse-row:has(input:checked) {
+    border-color: var(--ink-3);
+    background: var(--panel-2);
+    box-shadow: 0 0 0 1px var(--ink-4) inset;
+  }
+  .reuse-init .reuse-row input[type="checkbox"] {
+    margin: 3px 0 0 0;
+    flex: 0 0 auto;
+    accent-color: var(--ink);
+    width: 16px; height: 16px;
+    cursor: pointer;
+  }
+  .reuse-init .reuse-content { min-width: 0; flex: 1; }
+  .reuse-init .reuse-lbl {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .reuse-init .reuse-val {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+  }
+  .reuse-init .reuse-val .reuse-unit { font-size: 12px; color: var(--ink-3); margin-left: 3px; font-weight: 500; }
+  .reuse-init .reuse-meta { font-size: 11.5px; color: var(--ink-3); margin-top: 4px; line-height: 1.4; }
+  .reuse-init .reuse-actions {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .reuse-init .reuse-hint {
+    font-size: 11.5px; color: var(--ink-3); margin-left: 6px; line-height: 1.4;
+  }
+  .reuse-init .reuse-row.applied {
+    border-color: var(--proj);
+    background: var(--proj-soft);
+  }
+  .reuse-init .reuse-row { position: relative; }
+
+  /* Méthodes dans les colonnes projeté */
+  /* CH : 1 méthode visible (M3) → pleine largeur, layout horizontal interne */
+  body[data-state="projete"] .panels-wrap .tab-panel[data-tab="ch"] .methods {
+    grid-template-columns: 1fr !important;
+  }
+  /* Layout interne horizontal pour méthodes CH en colonne large */
+  body[data-state="projete"] .panels-wrap .tab-panel[data-tab="ch"] .method {
+    display: grid;
+    grid-template-columns: 1fr minmax(140px, 180px);
+    grid-template-rows: auto auto auto;
+    gap: 6px 18px;
+    align-items: start;
+    padding: 14px 16px;
+  }
+  body[data-state="projete"] .panels-wrap .tab-panel[data-tab="ch"] .method > .m-head { grid-column: 1; grid-row: 1; margin-bottom: 0; }
+  body[data-state="projete"] .panels-wrap .tab-panel[data-tab="ch"] .method > h5 {
+    grid-column: 1;
+    grid-row: 2;
+    margin: 2px 0 4px 0;
+  }
+  body[data-state="projete"] .panels-wrap .tab-panel[data-tab="ch"] .method > .result {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin: 0;
+    padding: 10px 12px;
+    align-self: start;
+  }
+  body[data-state="projete"] .panels-wrap .tab-panel[data-tab="ch"] .method > .result .val { font-size: 22px; }
+  body[data-state="projete"] .panels-wrap .tab-panel[data-tab="ch"] .method > .formula {
+    grid-column: 1 / span 2;
+    grid-row: 3;
+    margin-top: 2px;
+    padding: 8px 12px;
+    background: var(--panel-2);
+    border-radius: var(--r);
+  }
+  body[data-state="projete"] .panels-wrap .tab-panel[data-tab="ch"] .method > .missing-msg,
+  body[data-state="projete"] .panels-wrap .tab-panel[data-tab="ch"] .method > .missing-msg.info {
+    grid-column: 1 / span 2;
+  }
+  /* ECS : 2 méthodes visibles (M2a + M2b) → 2 colonnes, layout vertical interne */
+  body[data-state="projete"] .panels-wrap .tab-panel[data-tab="ecs"] .methods {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .panels-wrap { display: block; margin-bottom: 18px; }
+  body[data-state="projete"] .panels-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    align-items: start;
+    margin-top: 0;
+    margin-bottom: 18px;
+  }
+
+  /* === État projeté : thème VERT sur les blocs globaux === */
+  /* (les panneaux CH et ECS conservent leur thème corail/bleu) */
+  body[data-state="projete"] main > .projete-only.card,
+  body[data-state="projete"] main > .reuse-init {
+    border-left: 3px solid var(--proj);
+  }
+
+  /* Méthodes card : état "valeur reprise de l'existant" → désactivé + neutre */
+  body[data-state="projete"] .methods-card-ch.reused .card-body,
+  body[data-state="projete"] .methods-card-ecs.reused .card-body,
+  body[data-state="projete"] .ecs-target-card.reused .card-body,
+  body[data-state="projete"] .synth-card-ch.reused .synth,
+  body[data-state="projete"] .synth-card-ecs.reused .synth,
+  body[data-state="projete"] .synth-card-ecs.reused .equip-grid,
+  body[data-state="projete"] .synth-card-ecs.reused > .card-head + div,
+  body[data-state="projete"] .synth-card-ecs.reused > div:not(.card-head) {
+    display: none;
+  }
+  body[data-state="projete"] .methods-card-ch.reused,
+  body[data-state="projete"] .methods-card-ecs.reused,
+  body[data-state="projete"] .ecs-target-card.reused,
+  body[data-state="projete"] .synth-card-ch.reused,
+  body[data-state="projete"] .synth-card-ecs.reused {
+    background: var(--panel-2);
+    border-color: var(--line-2) !important;
+    border-left-color: var(--line-2) !important;
+    color: var(--ink-4);
+    filter: saturate(0);
+    pointer-events: none;
+    user-select: none;
+  }
+  body[data-state="projete"] .methods-card-ch.reused .card-head h3,
+  body[data-state="projete"] .methods-card-ecs.reused .card-head h3,
+  body[data-state="projete"] .ecs-target-card.reused .card-head h3,
+  body[data-state="projete"] .synth-card-ch.reused .card-head h3,
+  body[data-state="projete"] .synth-card-ecs.reused .card-head h3 {
+    color: var(--ink-3);
+  }
+  body[data-state="projete"] .methods-card-ch.reused .card-head .meta,
+  body[data-state="projete"] .methods-card-ecs.reused .card-head .meta,
+  body[data-state="projete"] .ecs-target-card.reused .card-head .meta,
+  body[data-state="projete"] .synth-card-ch.reused .card-head .meta,
+  body[data-state="projete"] .synth-card-ecs.reused .card-head .meta {
+    display: none;
+  }
+  body[data-state="projete"] .methods-card-ch.reused .card-head h3::after,
+  body[data-state="projete"] .methods-card-ecs.reused .card-head h3::after,
+  body[data-state="projete"] .ecs-target-card.reused .card-head h3::after,
+  body[data-state="projete"] .synth-card-ch.reused .card-head h3::after,
+  body[data-state="projete"] .synth-card-ecs.reused .card-head h3::after {
+    content: "Non applicable — valeur reprise de l'existant";
+    font-weight: 500;
+    font-size: 11px;
+    color: var(--ink-3);
+    background: #fff;
+    padding: 2px 8px;
+    margin-left: 10px;
+    border-radius: 3px;
+    border: 1px dashed var(--ink-4);
+    vertical-align: middle;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  body[data-state="projete"] .reuse-init .reuse-row:has(input:checked) {
+    border-color: var(--proj);
+    background: var(--proj-soft);
+    box-shadow: 0 0 0 1px var(--proj) inset;
+  }
+  body[data-state="projete"] .reuse-init .reuse-row input[type="checkbox"] {
+    accent-color: var(--proj);
+  }
+  body[data-state="projete"] .reuse-init .btn.primary {
+    background: var(--proj);
+    color: #fff;
+    border-color: var(--proj);
+  }
+  body[data-state="projete"] .reuse-init .btn.primary:hover {
+    background: var(--proj-ink);
+    border-color: var(--proj-ink);
+  }
+
+  /* T° retour mélange : vert (bloc global qui combine CH + ECS) */
+  /* (palette désormais alignée sur l'initialisation : fond vert clair + texte foncé) */
+
+  /* Synoptique combiné : reste avec titre noir comme les autres cards */
+
+  /* Mélange CH + ECS : layout compact 3 colonnes */
+  .mix-compact {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto 1.1fr;
+    gap: 14px;
+    align-items: stretch;
+  }
+  .mix-side {
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: #fff;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .mix-side-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .mix-side-head .mix-tag {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .mix-side-head .mix-power {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .mix-side-head .mix-power-sub {
+    font-size: 10.5px;
+    color: var(--ink-3);
+    font-weight: 400;
+    margin-left: 2px;
+  }
+  .mix-side-vals {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-items: end;
+  }
+  .mix-side-vals > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .mix-side-vals .k {
+    font-size: 10.5px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-weight: 600;
+  }
+  .mix-side-vals .k .hint {
+    font-size: 9px;
+    color: var(--ink-4);
+    font-weight: 400;
+    margin-left: 4px;
+    padding: 1px 4px;
+    background: var(--panel-2);
+    border-radius: 3px;
+    text-transform: none;
+    letter-spacing: 0;
+    vertical-align: middle;
+  }
+  .mix-side-vals .v {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+  .mix-side-vals .v .u {
+    font-size: 10.5px;
+    color: var(--ink-3);
+    font-weight: 500;
+    margin-left: 2px;
+  }
+  .mix-side-vals .mix-side-ret .v { color: var(--ink); font-size: 22px; }
+
+  .mix-side-detail {
+    margin-top: 10px;
+    border-top: 1px dashed var(--line);
+    padding-top: 6px;
+  }
+  .mix-side-detail summary {
+    font-size: 10.5px;
+    color: var(--ink-3);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    font-weight: 600;
+    letter-spacing: .03em;
+  }
+  .mix-side-detail summary::-webkit-details-marker { display: none; }
+  .mix-side-detail summary::before {
+    content: "▸ ";
+    font-size: 9px;
+    margin-right: 2px;
+    color: var(--ink-4);
+  }
+  .mix-side-detail[open] summary::before { content: "▾ "; }
+
+  .mix-eq {
+    align-self: center;
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 32px;
+    font-weight: 300;
+    color: var(--ink-3);
+    padding: 0 4px;
+    user-select: none;
+  }
+
+  .mix-result {
+    background: var(--proj-soft);
+    border: 1px solid var(--proj);
+    border-radius: var(--r-lg);
+    padding: 12px 14px;
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .mix-result .ek {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--proj-ink);
+    font-weight: 600;
+  }
+  .mix-result .big-val {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.05;
+    color: var(--proj-ink);
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .mix-result .big-val .u { font-size: 13px; color: var(--ink-3); margin-left: 4px; font-weight: 500; }
+  .mix-result .sub { font-size: 11px; color: var(--ink-2); margin-top: 2px; }
+  .mix-result-formula {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 11px;
+    color: var(--ink-2);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--proj);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1.5;
+  }
+  .mix-result-formula strong { color: var(--proj-ink); font-weight: 700; }
+
+  .mix-contribs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 4px;
+  }
+  .mix-card {
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: #fff;
+    padding: 14px 16px;
+  }
+  .mix-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .mix-card .mix-tag {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .mix-card .mix-power {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .mix-kv {
+    display: grid;
+    gap: 4px;
+  }
+  .mix-kv > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 12px;
+    padding: 4px 0;
+    border-bottom: 1px dashed var(--line-2);
+  }
+  .mix-kv > div:last-child { border-bottom: 0; }
+  .mix-kv .k { color: var(--ink-3); }
+  .mix-kv .v {
+    color: var(--ink);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .mix-kv .v .hint {
+    font-size: 10px;
+    color: var(--ink-4);
+    font-weight: 400;
+    margin-left: 6px;
+    padding: 1px 5px;
+    background: var(--panel-2);
+    border-radius: 3px;
+  }
+
+  .mix-detail {
+    margin-top: 10px;
+    border-top: 1px dashed var(--line);
+    padding-top: 8px;
+  }
+  .mix-detail-title {
+    font-size: 11px;
+    color: var(--ink-3);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 8px;
+  }
+  .mix-ch-steps {
+    margin-top: 8px;
+    display: grid;
+    gap: 4px;
+  }
+  .mix-ch-steps > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 12px;
+    padding: 4px 0;
+  }
+  .mix-ch-steps .k { color: var(--ink-3); }
+  .mix-ch-steps .v {
+    color: var(--ink);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .mix-ch-steps .v .hint {
+    font-size: 10px;
+    color: var(--ink-4);
+    font-weight: 400;
+    margin-left: 6px;
+    padding: 1px 5px;
+    background: var(--panel-2);
+    border-radius: 3px;
+  }
+  .mix-ch-total {
+    border-top: 1px solid var(--ink-4);
+    margin-top: 4px;
+    padding-top: 8px !important;
+  }
+  .mix-ch-total .v { font-weight: 700; color: var(--proj-ink); }
+  .mix-detail summary {
+    font-size: 11px;
+    color: var(--ink-3);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+  }
+  .mix-detail summary::-webkit-details-marker { display: none; }
+  .mix-detail summary::before {
+    content: "▸ ";
+    font-size: 10px;
+    margin-right: 4px;
+    color: var(--ink-4);
+  }
+  .mix-detail[open] summary::before {
+    content: "▾ ";
+  }
+  .mix-departs {
+    margin-top: 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    overflow: hidden;
+  }
+  .mix-departs-head {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr;
+    background: var(--panel-2);
+    padding: 6px 10px;
+    font-size: 10px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-weight: 600;
+  }
+  .mix-departs-row {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr;
+    padding: 6px 10px;
+    align-items: center;
+    border-top: 1px solid var(--line-2);
+    font-size: 11.5px;
+  }
+  .mix-departs-row .mono {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  body[data-state="projete"] .panels-wrap .tab-panel { padding-top: 0; }
+  body[data-state="projete"] .panels-wrap .tab-panel > h2,
+  body[data-state="projete"] .panels-wrap .tab-panel::before {
+    /* placeholder if we want column headers */
+  }
+
+  /* Per-tab thermique theme : CH = corail, ECS = bleu froid */
+  .tab-panel[data-tab="ch"] .card { border-left: 3px solid var(--hot); }
+  .tab-panel[data-tab="ch"] .method.kept {
+    border-color: #f0c7b5;
+    box-shadow: inset 0 3px 0 var(--hot);
+  }
+  .tab-panel[data-tab="ch"] .method.kept .m-id { background: var(--hot); color: #fff; }
+  .tab-panel[data-tab="ch"] .method .result:not(.empty) .val,
+  .tab-panel[data-tab="ch"] .synth .cell.kept .big,
+  .tab-panel[data-tab="ch"] .synth .cell .big { color: #c0673d; }
+  .tab-panel[data-tab="ch"] .synth-step .badge { background: var(--hot-soft); color: var(--hot-ink); }
+
+  .tab-panel[data-tab="ch"] .method .result {
+    background: var(--hot-soft);
+    border-color: #f0c7b5;
+  }
+  .tab-panel[data-tab="ch"] .method .result.empty,
+  .tab-panel[data-tab="ecs"] .method .result.empty {
+    background: var(--muted-bg);
+    border-color: var(--line);
+  }
+  .tab-panel[data-tab="ecs"] .method .result {
+    background: var(--cold-soft);
+    border-color: #b7c5ee;
+  }
+
+  .tab-panel[data-tab="ch"] .method .m-id,
+  .tab-panel[data-tab="ecs"] .method .m-id {
+    background: var(--ink);
+    color: #fff;
+  }
+  .tab-panel[data-tab="ecs"] .card { border-left: 3px solid var(--cold); }
+
+  /* Méthode avec résultat : bord teinté */
+  .tab-panel[data-tab="ch"] .method:has(.result:not(.empty)) {
+    border-color: #d99d80;
+    border-width: 1.5px;
+  }
+  .tab-panel[data-tab="ecs"] .method:has(.result:not(.empty)) {
+    border-color: #8ea4d0;
+    border-width: 1.5px;
+  }
+  .tab-panel[data-tab="ecs"] .method.kept {
+    border-color: #b7c5ee;
+    box-shadow: inset 0 3px 0 var(--cold);
+  }
+  .tab-panel[data-tab="ecs"] .method.kept .m-id { background: var(--cold); color: #fff; }
+  .tab-panel[data-tab="ecs"] .method .result:not(.empty) .val,
+  .tab-panel[data-tab="ecs"] .synth .cell.kept .big,
+  .tab-panel[data-tab="ecs"] .synth .cell .big { color: #3d6db5; }
+  .tab-panel[data-tab="ecs"] .sub-method .sm-v { color: var(--cold-ink); }
+  .tab-panel[data-tab="ecs"] .synth-step .badge { background: var(--cold-soft); color: var(--cold-ink); }
+
+  /* ---------- Generic card ---------- */
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-s);
+  }
+  .card .card-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .card .card-head h3 {
+    margin: 0; font-size: 14px; font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -.005em;
+  }
+  .card .card-head .meta { margin-left: auto; font-size: 11.5px; color: var(--ink-3); }
+  .card .card-body { padding: 16px; }
+
+  .grid-12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+  .col-12 { grid-column: span 12; }
+  .col-8  { grid-column: span 8; }
+  .col-6  { grid-column: span 6; }
+  .col-4  { grid-column: span 4; }
+  .col-3  { grid-column: span 3; }
+
+  /* ---------- Synoptic ---------- */
+  .synoptic {
+    padding: 12px 18px 10px 18px;
+    background:
+      linear-gradient(180deg, #fff 0%, #fbfbfc 100%);
+  }
+  .synoptic-layout {
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 18px;
+    align-items: start;
+  }
+  .synoptic-layout > svg { min-width: 0; }
+
+  .synoptic-recap {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 12px 14px;
+    font-size: 11.5px;
+    color: var(--ink);
+    align-self: start;
+    position: sticky;
+    top: 240px;
+  }
+  .synoptic-recap-section + .synoptic-recap-section {
+    border-top: 1px solid var(--line-2);
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+  .synoptic-recap-title {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    padding: 3px 9px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+    display: inline-block;
+    line-height: 1.3;
+  }
+  .synoptic-recap-title.hot {
+    color: var(--hot-ink);
+    background: var(--hot-soft);
+    border-color: #f0c7b5;
+  }
+  .synoptic-recap-title.cold {
+    color: var(--cold-ink);
+    background: var(--cold-soft);
+    border-color: #b7c5ee;
+  }
+  .synoptic-recap-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    padding: 3px 0;
+    align-items: baseline;
+  }
+  .synoptic-recap-row .k { color: var(--ink-3); }
+  .synoptic-recap-row .v {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .synoptic-recap-row .v.hot { color: var(--hot-ink); }
+  .synoptic-recap-row .v.cold { color: var(--cold-ink); }
+  .synoptic-recap-sep {
+    height: 1px;
+    background: var(--line-2);
+    margin: 4px -4px;
+  }
+  .synoptic-legend {
+    display: flex; gap: 16px; align-items: center;
+    font-size: 11.5px; color: var(--ink-2);
+    padding-top: 6px;
+  }
+  .synoptic-legend .swatch { width: 18px; height: 3px; border-radius: 2px; display: inline-block; vertical-align: middle; margin-right: 6px; }
+  .synoptic-legend .swatch.hot { background: var(--hot); }
+  .synoptic-legend .swatch.cold { background: var(--cold); }
+  .synoptic-legend .swatch.aux { background: var(--ink-4); }
+
+  /* ---------- Form fields ---------- */
+  .field {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 6px 0;
+  }
+  .field .lbl {
+    font-size: 11px;
+    color: var(--ink-2);
+    display: flex; gap: 6px; align-items: baseline;
+  }
+  .field .lbl .hint { color: var(--ink-4); font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 10px; }
+  .field .input {
+    height: 32px;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: #fff;
+    display: flex; align-items: center;
+    padding: 0 10px;
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .field .input.empty {
+    background: var(--panel-2);
+    color: var(--ink-4);
+    border-style: dashed;
+  }
+  .field .input .unit { color: var(--ink-3); margin-left: auto; font-size: 11px; }
+  .field .input .ph { color: var(--ink-4); }
+
+  .field-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .field-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .field-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+  .subhead {
+    display: flex; align-items: baseline; gap: 8px;
+    margin: 8px 0 4px 0;
+  }
+  .subhead h4 {
+    margin: 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+  .subhead .line { flex: 1; height: 1px; background: var(--line-2); }
+
+  /* ---------- Method columns ---------- */
+  .methods {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .method {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 12px 12px 10px 12px;
+    display: flex; flex-direction: column;
+    min-height: 240px;
+    position: relative;
+    min-width: 0;
+  }
+  .method.muted { background: var(--panel-2); }
+  .method.kept {
+    border-color: var(--line);
+  }
+  .method.kept .m-id {
+    background: var(--ink);
+    color: #fff;
+  }
+  .method .m-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 2px;
+  }
+  .method .m-id {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: .08em;
+    padding: 3px 8px;
+    background: var(--pill-gray);
+    border-radius: 3px;
+    white-space: nowrap;
+    text-transform: uppercase;
+  }
+  .method .m-status {
+    font-size: 9.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--ink-3);
+    padding: 2px 6px;
+    background: var(--pill-gray);
+    border-radius: 3px;
+    display: inline-flex; align-items: center; gap: 5px;
+    white-space: nowrap;
+  }
+  .method .m-status::before {
+    content: "";
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .7;
+  }
+  .method .m-status.ok { color: var(--pill-green-ink); background: var(--pill-green); }
+  .method .m-status.warn { color: var(--pill-yellow-ink); background: var(--pill-yellow); }
+  .method h5 {
+    margin: 4px 0 10px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .method .result {
+    margin: 4px 0 12px 0;
+    padding: 10px 12px;
+    border-radius: var(--r);
+    background: #f5f5f5;
+    border: 1px solid var(--line);
+  }
+  .method .result.empty {
+    background: var(--muted-bg);
+    border-color: var(--line);
+  }
+  .method .result .val {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .method .result.empty .val { color: var(--ink-4); }
+  .method .result .unit { font-size: 13px; color: var(--ink-2); margin-left: 4px; font-weight: 500; }
+  .method .result .note { font-size: 11px; color: var(--ink-2); margin-top: 4px; }
+
+  .method .formula {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 11px;
+    color: var(--ink-2);
+    background: transparent;
+    border: 0;
+    border-top: 1px dashed var(--line);
+    border-radius: 0;
+    padding: 8px 0 0 0;
+    margin-bottom: 8px;
+    word-break: break-word;
+    line-height: 1.6;
+  }
+  .method:has(.result.empty) .formula {
+    color: var(--ink-3);
+  }
+  .method .hyp { margin-top: auto; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .method .hyp .kv-row .k { font-size: 11px; }
+  .method .hyp .kv-row .v { font-size: 11px; }
+
+  /* Single-line variant for muted / non-applicable methods */
+  .method-line {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    min-width: 0;
+    position: relative;
+  }
+
+  /* Type ECS production — choix scénario mis en avant */
+  .type-choice {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .type-card {
+    border: 1.5px solid var(--line);
+    background: #fff;
+    border-radius: var(--r-lg);
+    padding: 14px 16px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
+    font-family: inherit;
+    color: var(--ink);
+  }
+  .type-card:hover:not(.selected) {
+    border-color: var(--cold);
+    background: var(--panel-2);
+  }
+  .type-card .type-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .type-card .type-desc {
+    font-size: 11.5px;
+    color: var(--ink-3);
+    line-height: 1.4;
+  }
+  .type-card.selected {
+    border-color: var(--cold);
+    background: var(--cold-soft);
+    box-shadow: 0 0 0 1px var(--cold) inset, 0 1px 2px rgba(44,108,184,.08);
+  }
+  .type-card.selected .type-name { color: var(--cold-ink); }
+  .type-card.selected .type-desc { color: var(--cold-ink); opacity: .8; }
+
+  /* Equipment recommendation cards (Échangeur + Ballon ECS) */
+  .equip-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .equip-card {
+    position: relative;
+    padding: 16px 18px;
+    background: var(--cold);
+    border: 1.5px solid var(--cold);
+    border-radius: var(--r-lg);
+    color: #fff;
+  }
+  .equip-card .equip-icon {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 40px; height: 40px;
+    border-radius: var(--r);
+    background: rgba(255,255,255,.14);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    opacity: .9;
+  }
+  .equip-card .equip-icon svg { width: 26px; height: 26px; }
+  .equip-card .ek {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: #fff;
+    opacity: .85;
+    font-weight: 600;
+    padding-right: 50px;
+  }
+  .equip-card .big {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 30px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.05;
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .equip-card .big .u {
+    font-size: 14px;
+    color: #fff;
+    opacity: .8;
+    margin-left: 4px;
+    font-weight: 500;
+  }
+  .equip-card .sub {
+    color: #fff;
+    opacity: .85;
+    font-size: 11.5px;
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+
+  .method-line::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--ink-4);
+    border-radius: var(--r) 0 0 var(--r);
+    opacity: .35;
+  }
+  .tab-panel[data-tab="ch"] .method-line::before { background: var(--hot); opacity: .35; }
+  .tab-panel[data-tab="ecs"] .method-line::before { background: var(--cold); opacity: .35; }
+  .method-line .m-id {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: #fff;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .method-line h5 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-2);
+    line-height: 1.3;
+    min-width: 0;
+  }
+  .method-line h5 .sub {
+    display: block;
+    font-weight: 400;
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-top: 2px;
+  }
+  .method-line .formula {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 11px;
+    color: var(--ink-3);
+    white-space: nowrap;
+    padding: 6px 10px;
+    background: var(--panel-2);
+    border-radius: var(--r);
+  }
+  .method-line .val-cell {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink-4);
+    white-space: nowrap;
+    min-width: 80px;
+    text-align: right;
+  }
+  .method-line .val-cell .unit { font-size: 11px; color: var(--ink-3); margin-left: 4px; font-weight: 500; }
+  .method-line .hint-line {
+    grid-column: 1 / -1;
+    margin: 2px 0 0 0;
+    padding: 8px 10px;
+    background: #f7ecd0;
+    border: 1px solid #e0c990;
+    border-radius: var(--r);
+    font-size: 11px;
+    color: #4a5159;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .method-line .hint-line .icon {
+    flex: 0 0 auto;
+    width: 14px; height: 14px;
+    margin-top: 1px;
+    color: #b88a2a;
+  }
+  .method-line .hint-line .icon svg { display: block; width: 100%; height: 100%; }
+
+  .missing-msg {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #f7ecd0;
+    border: 1px solid #e0c990;
+    border-radius: var(--r);
+    font-size: 11px;
+    color: #4a5159;
+    line-height: 1.5;
+  }
+  .missing-msg { display: flex; align-items: flex-start; gap: 8px; }
+  .missing-msg .icon {
+    flex: 0 0 auto;
+    width: 14px; height: 14px;
+    margin-top: 1px;
+    color: #b88a2a;
+  }
+  .missing-msg.info .icon { color: #4a78b8; }
+  .missing-msg .icon svg { display: block; width: 100%; height: 100%; }
+
+  /* sub-methods (ECS M2 has 3 sub) */
+  .sub-methods {
+    margin-top: 8px;
+    border-top: 1px dashed var(--line);
+    padding-top: 8px;
+    display: grid; grid-template-columns: 1fr; gap: 6px;
+  }
+  .sub-method {
+    display: grid; grid-template-columns: 1fr auto; gap: 6px;
+    padding: 6px 8px;
+    background: var(--panel-2);
+    border: 1px solid var(--line-2);
+    border-radius: var(--r);
+    align-items: center;
+  }
+  .sub-method .sm-k { font-size: 11px; color: var(--ink-2); }
+  .sub-method .sm-k .ref { font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif; color: var(--ink-3); margin-right: 6px; font-size: 10.5px; }
+  .sub-method .sm-v { font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 12px; color: var(--accent-ink); font-weight: 600; }
+  .sub-method .sm-v .u { color: var(--ink-3); font-weight: 400; margin-left: 2px; font-size: 10.5px; }
+
+  /* ---------- Synthesis ---------- */
+  .synth {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 18px;
+    padding: 18px;
+  }
+  .synth .cell .ek {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--ink-3); font-weight: 600;
+  }
+  .synth .cell .big {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.05;
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .synth .cell .big .u { font-size: 14px; color: var(--ink-3); margin-left: 4px; font-weight: 500; }
+  .synth .cell .sub { color: var(--ink-3); font-size: 11.5px; margin-top: 4px; }
+  .synth .cell.kept .big { color: var(--accent); }
+  .synth .op {
+    align-self: center;
+    color: var(--ink-3);
+    font-size: 24px;
+    font-weight: 500;
+    padding: 0 6px;
+  }
+  .synth .cell.highlight {
+    background: var(--hot);
+    border: 1.5px solid var(--hot);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin: -12px -14px;
+  }
+  .synth .cell.highlight .ek { color: #fff; opacity: .85; }
+  .synth .cell.highlight .big { color: #fff; }
+  .synth .cell.highlight .big .u { color: #fff; opacity: .8; }
+  .synth .cell.highlight .sub { color: #fff; opacity: .85; }
+  .tab-panel[data-tab="ch"] .synth .cell.highlight .big { color: #fff; }
+  .tab-panel[data-tab="ecs"] .synth .cell.highlight {
+    background: var(--cold);
+    border-color: var(--cold);
+  }
+  .tab-panel[data-tab="ecs"] .synth .cell.highlight .big { color: #fff; }
+
+  .synth .cell .field .input {
+    height: 44px;
+    font-size: 22px;
+    font-weight: 700;
+    padding: 0 14px;
+    color: var(--ink);
+  }
+  .synth .cell .field .input .unit {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-3);
+    margin-left: 4px;
+  }
+  .synth-recap {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 12px 18px 16px 18px;
+    border-top: 1px solid var(--line-2);
+    background: var(--panel-2);
+  }
+  .synth-recap .recap-lbl {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .synth-recap .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 8px 3px 4px;
+    border-radius: 4px;
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .synth-recap .chip .m {
+    font-size: 9.5px;
+    letter-spacing: .06em;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 2px;
+    background: var(--pill-gray);
+    color: var(--ink-2);
+  }
+  .tab-panel[data-tab="ch"] .synth-recap .chip .m { background: var(--hot-soft); color: var(--hot-ink); }
+  .tab-panel[data-tab="ecs"] .synth-recap .chip .m { background: var(--cold-soft); color: var(--cold-ink); }
+  .synth-recap .chip.muted { color: var(--ink-4); }
+  .synth-recap .chip.muted .m { background: #eceef1; color: var(--ink-4); }
+  .synth .arrow {
+    align-self: center;
+    color: var(--ink-4);
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 18px;
+  }
+  .synth-row {
+    display: flex; align-items: center; gap: 24px;
+  }
+  .synth-row > .seg { flex: 1; }
+  .synth-step {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--ink-3);
+    margin-top: 4px;
+  }
+  .synth-step .badge {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10.5px;
+    color: var(--accent-ink);
+    background: var(--accent-soft);
+    padding: 1px 6px;
+    border-radius: 999px;
+  }
+
+  /* ---------- Bottom global bar ---------- */
+  .bottom-bar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    z-index: 40;
+    background: #fff;
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -4px 16px rgba(20,24,33,.05);
+  }
+  .bottom-bar .inner {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 10px 24px;
+    display: grid;
+    grid-template-columns: auto repeat(5, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+  }
+  .bottom-bar .title {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--ink-3); font-weight: 600;
+    padding-right: 18px; border-right: 1px solid var(--line-2);
+  }
+  .bb-cell .k { font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; }
+  .bb-cell .v {
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+  }
+  .bb-cell .v .u { font-size: 11px; color: var(--ink-3); font-weight: 500; margin-left: 3px; }
+  .bb-cell.accent .v { color: var(--accent); }
+  .bottom-bar .actions { display: flex; gap: 8px; }
+
+  /* helpers */
+  .hidden { display: none !important; }
+  .sep-v { width: 1px; background: var(--line-2); align-self: stretch; }
+  .mb-2 { margin-bottom: 10px; }
+  .mb-3 { margin-bottom: 14px; }
+  .mt-2 { margin-top: 10px; }
+
+  /* tiny chip for sources */
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10.5px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--muted-bg);
+    color: var(--ink-2);
+    font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- FLUX header (corail)                                         -->
+<!-- ============================================================ -->
+<header class="flux-header">
+  <div class="crumbs">
+    <span class="brand-logo">FL<span class="dim">UX</span></span>
+    <span class="sep">›</span>
+    <span class="proj">Nancy-Est · étude SST</span>
+  </div>
+  <div class="title">Outil MOE · Sous-Stations RCU</div>
+  <div class="actions">
+    <button class="h-btn">← Projets</button>
+    <button class="h-btn">☽ Nuit</button>
+    <button class="h-btn">↗ Charger</button>
+    <button class="h-btn solid">↓ Sauvegarder</button>
+  </div>
+</header>
+
+<!-- Module nav -->
+<nav class="module-nav">
+  <a href="#">
+    <span class="step-num">M0</span>
+    <span class="step-lbl">Hypothèses</span>
+  </a>
+  <a href="#">
+    <span class="step-num">M1</span>
+    <span class="step-lbl">Référentiel SST</span>
+  </a>
+  <a href="#" class="active">
+    <span class="step-num">M2</span>
+    <span class="step-lbl">Puissances</span>
+  </a>
+  <a href="#">
+    <span class="step-num">M3</span>
+    <span class="step-lbl">Carte</span>
+  </a>
+  <div class="nav-tail">
+    <span class="meta">Affaire <b>2026-014</b> · MAJ <b>aujourd'hui 14:32</b></span>
+  </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- Sticky : identification SST                                  -->
+<!-- ============================================================ -->
+<div class="id-bar">
+  <div class="id-block">
+    <span class="sst-tag">SST-001</span>
+    <div class="addr">
+      <div>22 rue Chopin, 54600 Nancy</div>
+      <div class="sub">Logement collectif · 105 logements</div>
+    </div>
+  </div>
+  <div class="tags" style="gap:8px;">
+    <span class="pill coral">Primaire</span>
+    <span class="pill green">CH+ECS</span>
+    <span class="pill purple">Raccordement</span>
+    <span class="pill yellow">Gaz</span>
+  </div>
+  <div style="display:flex; gap:8px;">
+    <button class="btn">Modifier</button>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- Main                                                          -->
+<!-- ============================================================ -->
+<main class="app">
+
+
+  <!-- Tabs -->
+  <div class="tabs-wrapper">
+    <div class="tabs-group">
+      <span class="tabs-group-label">État existant</span>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-tab="ch">
+          <span class="label-l">Chauffage</span>
+          <span class="sep">·</span>
+          <span class="val">372,6 kW</span>
+        </button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="ecs">
+          <span class="label-l">ECS</span>
+          <span class="sep">·</span>
+          <span class="val">360 kW + 1 146 L</span>
+        </button>
+      </div>
+    </div>
+    <div class="tabs-divider" aria-hidden="true"></div>
+    <div class="tabs-group">
+      <span class="tabs-group-label">État projeté</span>
+      <div class="tabs" role="tablist">
+        <button class="tab tab-projete" role="tab" aria-selected="false" data-tab="projete">
+          <span class="label-l">Projeté</span>
+          <span class="sep">·</span>
+          <span class="val">à dimensionner</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- Sticky : hypothèses + Module 1                               -->
+  <!-- ============================================================ -->
+  <div class="hyp-bar" id="hypBar">
+    <div class="hyp-head" id="hypHead">
+      <svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      <h3>Hypothèses générales &amp; données Module 1</h3>
+    </div>
+    <div class="hyp-body">
+  
+      <!-- Hypothèses climat -->
+      <div class="hyp-col">
+        <h4>Climat &amp; DJU</h4>
+        <div class="kv-row"><span class="k">T° base hiver</span><span class="v">−7<span class="unit">°C</span><span class="mod-badge m0">Mod.0</span></span></div>
+        <div class="kv-row"><span class="k">T° intérieure ref.</span><span class="v">20<span class="unit">°C</span><span class="mod-badge m0">Mod.0</span></span></div>
+        <div class="kv-row"><span class="k">DJU référence</span><span class="v">2 300<span class="unit">°C·j</span><span class="mod-badge m0">Mod.0</span></span></div>
+        <div class="kv-row"><span class="k">DJU N−1 (base 20°C)</span><span class="v">2 000<span class="unit">°C·j</span><span class="mod-badge m0">Mod.0</span></span></div>
+        <div class="kv-row"><span class="k">Zone climatique</span><span class="v">H1b<span class="mod-badge m0">Mod.0</span></span></div>
+      </div>
+  
+      <!-- Hypothèses régime -->
+      <div class="hyp-col">
+        <h4>Régimes &amp; pincements</h4>
+        <div class="kv-row"><span class="k">ECS départ / retour <span style="color:var(--ink-3); font-weight:400;">(recyclage + EF)</span></span><span class="v">60 / 40<span class="unit">°C</span><span class="mod-badge m0">Mod.0</span></span></div>
+        <div class="kv-row"><span class="k">T° eau froide</span><span class="v">10<span class="unit">°C</span><span class="mod-badge m0">Mod.0</span></span></div>
+        <div class="kv-row"><span class="k">T° retour bouclage ECS</span><span class="v">53<span class="unit">°C</span><span class="mod-badge m0">Mod.0</span></span></div>
+        <div class="kv-row"><span class="k">T° de puisage</span><span class="v">40<span class="unit">°C</span><span class="mod-badge m0">Mod.0</span></span></div>
+        <div class="kv-row"><span class="k">T° départ primaire RCU</span><span class="v">90<span class="unit">°C</span><span class="mod-badge m0">Mod.0</span></span></div>
+      </div>
+  
+      <!-- Module 1 -->
+      <div class="hyp-col">
+        <h4>Données Module 1 · bâtiment</h4>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 24px; padding-bottom:6px; margin-bottom:6px; border-bottom:1px solid var(--line-2);">
+          <div class="kv-row"><span class="k">Type bâtiment</span><span class="v">Logt. collectif<span class="mod-badge m1">Mod.1</span></span></div>
+          <div class="kv-row"><span class="k">Nb logements</span><span class="v">105<span class="mod-badge m1">Mod.1</span></span></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 24px;">
+          <div>
+            <div class="kv-row"><span class="k">Ratio surfacique</span><span class="v">80<span class="unit">W/m²</span><span class="mod-badge m1">Mod.1</span></span></div>
+            <div class="kv-row"><span class="k">Coef. intermittence</span><span class="v">0,80<span class="mod-badge m1">Mod.1</span></span></div>
+            <div class="kv-row"><span class="k">Durée fonct. CH</span><span class="v">2 000<span class="unit">h/an</span><span class="mod-badge m1">Mod.1</span></span></div>
+            <div class="kv-row"><span class="k">Surface chauffée</span><span class="v">4 050<span class="unit">m²</span><span class="mod-badge m1">Mod.1</span></span></div>
+          </div>
+          <div>
+            <div class="kv-row"><span class="k">H pointe ECS</span><span class="v">3<span class="unit">h</span><span class="mod-badge m1">Mod.1</span></span></div>
+            <div class="kv-row"><span class="k">Besoin <span style="font-family:'Inter', monospace;">a</span></span><span class="v">500<span class="unit">L/sem/ad_éq</span><span class="mod-badge m1">Mod.1</span></span></div>
+          </div>
+        </div>
+      </div>
+  
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Initialisation depuis l'état existant (projeté only)    -->
+  <!-- ====================================================== -->
+  <div class="card mb-3 projete-only reuse-init" style="margin-top:18px;">
+    <div class="card-head">
+      <h3>Initialisation depuis l'état existant</h3>
+      <span class="meta">reprendre les valeurs retenues comme point de départ du projet</span>
+    </div>
+    <div class="card-body">
+      <div class="reuse-grid">
+        <label class="reuse-row" data-target="methods-card-ch">
+          <input type="checkbox" checked="">
+          <div class="reuse-content">
+            <div class="reuse-lbl">Puissance chauffage</div>
+            <div class="reuse-val">372,6 <span class="reuse-unit">kW</span></div>
+            <div class="reuse-meta">retenue 324 kW · +15 % marge → 372,6 kW</div>
+          </div>
+        </label>
+        <label class="reuse-row reuse-row-combo" data-target="methods-card-ecs">
+          <input type="checkbox" checked="">
+          <div class="reuse-content">
+            <div class="reuse-lbl">
+              ECS — puissance + ballon
+              <span class="reuse-type-tag">Semi-instantanée</span>
+            </div>
+            <div class="reuse-combo">
+              <div class="reuse-combo-item">
+                <div class="reuse-val">360 <span class="reuse-unit">kW</span></div>
+                <div class="reuse-combo-sub">Échangeur</div>
+              </div>
+              <div class="reuse-combo-sep" aria-hidden="true"></div>
+              <div class="reuse-combo-item">
+                <div class="reuse-val">1 146 <span class="reuse-unit">L</span></div>
+                <div class="reuse-combo-sub">Ballon · 40 min relève</div>
+              </div>
+            </div>
+            <div class="reuse-meta">échangeur 360 kW + ballon 1 146 L · répartition 60 % / 40 % sur 600 kW retenus</div>
+          </div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Panels CH + ECS (2 colonnes en mode Projeté)            -->
+  <!-- ====================================================== -->
+  <div class="panels-wrap">
+
+  <!-- ====================================================== -->
+  <!-- TAB : CHAUFFAGE                                         -->
+  <!-- ====================================================== -->
+  <section class="tab-panel" data-tab="ch" data-active="true">
+
+    <!-- Détail synoptique CH — retiré : remplacé par le synoptique combiné toujours visible ci-dessus -->
+
+    <!-- Données chauffage (saisie) -->
+    <div class="card mb-3 existant-only">
+      <div class="card-head">
+        <h3>Données chauffage</h3>
+        <span class="meta">section requise pour méthodes M1, M2A, M2B, M4</span>
+      </div>
+      <div class="card-body">
+
+        <div class="subhead"><h4>Source de la consommation historique</h4><span class="line"></span></div>
+        <div style="display:flex; gap:8px; margin-bottom:4px;">
+          <span class="src-pill" aria-pressed="true">Compteur énergie</span>
+          <span class="src-pill">Chaudière gaz</span>
+          <span class="src-pill">Chaudière fioul</span>
+        </div>
+
+        <div class="subhead"><h4>Consommations historiques</h4><span class="line"></span></div>
+        <div class="field-row">
+          <div class="field">
+            <span class="lbl">Conso CH N−1 <span class="hint">MWh/an</span></span>
+            <div class="input"><span>498</span><span class="unit">MWh/an</span></div>
+          </div>
+          <div class="field">
+            <span class="lbl opt">Conso CH N−2 <span class="hint">MWh/an</span></span>
+            <div class="input empty"><span class="ph">non renseigné</span></div>
+          </div>
+          <div class="field">
+            <span class="lbl opt">Conso CH N−3 <span class="hint">MWh/an</span></span>
+            <div class="input empty"><span class="ph">non renseigné</span></div>
+          </div>
+          <div class="field">
+            <span class="lbl">Rendement chaudière existante</span>
+            <div class="input"><span>0,88</span><span style="margin-left:auto; color:var(--ink-4); font-size:9px;">▾</span></div>
+          </div>
+        </div>
+
+        <div class="subhead"><h4>Équipements existants</h4><span class="line"></span></div>
+        <div class="field-row">
+          <div class="field">
+            <span class="lbl opt">Puissance chaudière existante</span>
+            <div class="input"><span>250</span><span class="unit">kW</span></div>
+          </div>
+          <div class="field">
+            <span class="lbl opt">Nombre de générateurs</span>
+            <div class="input"><span>1</span></div>
+          </div>
+          <div class="field">
+            <span class="lbl opt">Année de mise en service</span>
+            <div class="input empty"><span class="ph">non renseigné</span></div>
+          </div>
+          <div class="field"></div>
+        </div>
+
+        <div class="subhead"><h4>Départs chauffage secondaires</h4><span class="line"></span></div>
+
+        <div style="border:1px solid #f0c7b5; border-radius:var(--r-lg); padding:12px 14px; background:#fdf3ed;">
+
+          <div class="subhead" style="margin-top:0;"><h4>Type de départ</h4><span class="line"></span></div>
+          <div class="field-row cols-2">
+            <div class="field">
+              <span class="lbl">Régulation</span>
+              <div class="input"><span>Constant</span><span style="margin-left:auto; color:var(--ink-4); font-size:9px;">▾</span></div>
+            </div>
+            <div class="field">
+              <span class="lbl">Émetteur</span>
+              <div class="input"><span>Radiateur</span><span style="margin-left:auto; color:var(--ink-4); font-size:9px;">▾</span></div>
+            </div>
+          </div>
+
+          <div class="subhead"><h4>Estimation du débit</h4><span class="line"></span></div>
+          <div class="field-row">
+            <div class="field">
+              <span class="lbl">DN canalisation</span>
+              <div class="input empty"><span class="ph">— choisir —</span></div>
+            </div>
+            <div class="field">
+              <span class="lbl opt">Débit J+20 <span class="hint">m³/h</span></span>
+              <div class="input empty"><span class="ph">non renseigné</span></div>
+            </div>
+            <div class="field">
+              <span class="lbl opt">Modèle pompe</span>
+              <div class="input empty"><span class="ph">ex. circulateur centrifuge DN25</span></div>
+            </div>
+            <div class="field">
+              <span class="lbl opt">Débit estimé pompe <span class="hint">m³/h</span></span>
+              <div class="input empty"><span class="ph">non renseigné</span></div>
+            </div>
+          </div>
+
+          <div class="field-row" style="margin-top:2px;">
+            <div class="field">
+              <span class="lbl">Débit retenu <span class="hint">m³/h</span></span>
+              <div class="input"><span>1,0</span><span class="unit">m³/h</span></div>
+            </div>
+            <div class="field"></div>
+            <div class="field"></div>
+            <div class="field"></div>
+          </div>
+
+          <div class="subhead"><h4>Loi d'eau</h4><span class="line"></span></div>
+          <div class="field-row">
+            <div class="field">
+              <span class="lbl">T° départ à T<sub>ext</sub> = −7 °C</span>
+              <div class="input"><span>60</span><span class="unit">°C</span></div>
+            </div>
+            <div class="field">
+              <span class="lbl">ΔT émetteur</span>
+              <div class="input"><span>20</span><span class="unit">°C</span></div>
+            </div>
+            <div class="field">
+              <span class="lbl">T° retour estimée</span>
+              <div class="input"><span>40</span><span class="unit">°C</span></div>
+            </div>
+            <div class="field">
+              <span class="lbl">Puissance départ (calculée)</span>
+              <div class="input" style="background:var(--accent-soft); border-color:#cfe0dd; color:var(--accent-ink); font-weight:600;"><span>23,3</span><span class="unit">kW</span></div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn sm" style="margin-top:10px;">+ Ajouter un départ chauffage</button>
+
+        <div class="subhead"><h4>Puissance souscrite (référence contractuelle)</h4><span class="line"></span></div>
+        <div class="field-row">
+          <div class="field">
+            <span class="lbl opt">Puissance souscrite contrat actuel</span>
+            <div class="input empty"><span class="ph">non renseigné</span><span class="unit">kW</span></div>
+          </div>
+          <div class="field">
+            <span class="lbl opt">Période contrat</span>
+            <div class="input empty"><span class="ph">non renseigné</span></div>
+          </div>
+          <div class="field" style="grid-column: span 2;"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Méthodes -->
+    <div class="card mb-3 methods-card-ch">
+      <div class="card-head">
+        <h3>Méthodes de calcul · puissance chauffage</h3>
+        <span class="meta existant-only">4 méthodes parallèles · résultat retenu par l'ingénieur</span>
+        <span class="meta projete-only-inline">approche normative simplifiée · ratio surfacique cible</span>
+      </div>
+      <div class="card-body">
+        <div class="methods" style="grid-template-columns: repeat(3, 1fr);">
+
+          <!-- Méthode 1 -->
+          <div class="method existant-only">
+            <div class="m-head">
+              <span class="m-id">MÉTHODE 1</span>
+            </div>
+            <h5>Consommations historiques corrigées DJU</h5>
+            <div class="result">
+              <span class="val">324,2<span class="unit">kW</span></span>
+              <div class="note">à partir conso N−1 corrigée climat de référence</div>
+            </div>
+            <div class="formula">P = (E<sub>N−1</sub> × DJU<sub>réf</sub> / DJU<sub>N−1</sub>) / (D × η) × i<br>= (498 000 × 2 300 / 2 000) / (2 000 × 0,88) × 0,80<br>= <strong>324,2 kW</strong></div>
+          </div>
+
+          <!-- Méthode 3 -->
+          <div class="method muted">
+            <div class="m-head">
+              <span class="m-id">MÉTHODE 3</span>
+            </div>
+            <h5>Ratio surfacique × surface chauffée</h5>
+            <div class="result empty">
+              <span class="val">— <span class="unit">kW</span></span>
+              <div class="note">approche normative simplifiée</div>
+            </div>
+            <div class="formula">P = R<sub>W/m²</sub> × S<sub>chauffée</sub> × i</div>
+            <div class="missing-msg">
+              <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span><span>Surface chauffée Module 1 indicative — confirmer la surface utile RT (4 050 m²) avant d'activer la méthode.</span>
+            </div>
+          </div>
+
+          <!-- Méthode 2B -->
+          <div class="method existant-only">
+            <div class="m-head">
+              <span class="m-id">MÉTHODE 2B</span>
+            </div>
+            <h5>Loi d'eau pleine charge · débits secondaires</h5>
+            <div class="result">
+              <span class="val">23,3<span class="unit">kW</span></span>
+              <div class="note">Σ départs CH au régime nominal</div>
+            </div>
+            <div class="formula">P = Σ (ρ · c<sub>p</sub> · q<sub>v,i</sub> · ΔT<sub>i</sub>)<br>= 1,163 × 1,0 × 20<br>= <strong>23,3 kW</strong></div>
+            <div class="missing-msg info" style="margin-top:8px;">
+              <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span><span>Résultat faible — vérifier la complétude des départs secondaires (un seul départ saisi pour 105 logements).</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Méthode 2A · présentée en ligne car non applicable -->
+        <div class="method-line existant-only">
+          <span class="m-id">MÉTHODE 2A</span>
+          <h5>Équipements existants — puissance installée<span class="sub">somme des puissances générateurs en place</span></h5>
+          <div class="formula">P = Σ P<sub>générateur,i</sub> × η<sub>moyen</sub></div>
+          <div class="val-cell">— <span class="unit">kW</span></div>
+          <div class="hint-line">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span><span>Renseigner l'année de mise en service et le rendement de chaque générateur dans la section "Équipements existants".</span>
+          </div>
+        </div>
+
+        <!-- Méthode 4 · présentée en ligne car non applicable -->
+        <div class="method-line existant-only">
+          <span class="m-id">MÉTHODE 4</span>
+          <h5>Puissance souscrite — référence contractuelle<span class="sub">contrat de fourniture si renseigné</span></h5>
+          <div class="formula">P = P<sub>souscrite, CH</sub></div>
+          <div class="val-cell">— <span class="unit">kW</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Synthèse CH -->
+    <div class="card accent synth-card-ch">
+      <div class="card-head">
+        <h3>Synthèse chauffage</h3>
+        <span class="meta">saisie de la puissance retenue + marge → puissance installée recommandée</span>
+      </div>
+      <div class="synth" style="grid-template-columns: 1.4fr auto 1fr auto 1.2fr;">
+        <div class="cell kept">
+          <div class="ek">Puissance retenue</div>
+          <div class="field" style="margin-top:6px; max-width:160px;">
+            <div class="input"><span>324</span><span class="unit">kW</span></div>
+          </div>
+          <div class="sub" style="margin-top:8px;">saisie ingénieur · décision à partir des méthodes calculées</div>
+        </div>
+        <div class="op">×</div>
+        <div class="cell">
+          <div class="ek">Marge appliquée</div>
+          <div class="field" style="margin-top:6px; max-width:140px;">
+            <div class="input"><span>15</span><span class="unit">%</span></div>
+          </div>
+          <div class="sub" style="margin-top:8px;">sécurité réseau &amp; vieillissement</div>
+        </div>
+        <div class="op">=</div>
+        <div class="cell highlight">
+          <div class="ek">Puissance installée recommandée</div>
+          <div class="big">372,6<span class="u">kW</span></div>
+          <div class="sub">échangeur à plaques · pincement 2 °C</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  
+
+  <!-- ====================================================== -->
+  <!-- TAB : ECS                                               -->
+  <!-- ====================================================== -->
+  <section class="tab-panel" data-tab="ecs" data-active="false">
+
+    <!-- Détail synoptique ECS — retiré : remplacé par le synoptique combiné toujours visible ci-dessus -->
+
+    <!-- Données ECS (saisie) -->
+    <div class="card mb-3 existant-only">
+      <div class="card-head">
+        <h3>Données ECS</h3>
+        <span class="meta">section requise pour méthodes M1, M2 (a/b/c), M4</span>
+      </div>
+      <div class="card-body">
+
+        <div class="subhead"><h4>Volumes EF compteur eau</h4><span class="line"></span></div>
+        <div class="field-row">
+          <div class="field">
+            <span class="lbl">Conso EF ECS N−1 <span class="hint">m³</span></span>
+            <div class="input"><span>5 000</span><span class="unit">m³</span></div>
+          </div>
+          <div class="field">
+            <span class="lbl opt">Conso EF ECS N−2 <span class="hint">m³</span></span>
+            <div class="input empty"><span class="ph">non renseigné</span><span class="unit">m³</span></div>
+          </div>
+          <div class="field"></div>
+          <div class="field"></div>
+        </div>
+
+        <div class="subhead"><h4>Énergie compteur d'énergie</h4><span class="line"></span></div>
+        <div class="field-row">
+          <div class="field">
+            <span class="lbl opt">Conso énergie ECS N−1 <span class="hint">MWh/an</span></span>
+            <div class="input empty"><span class="ph">si compteur énergie</span><span class="unit">MWh/an</span></div>
+          </div>
+          <div class="field">
+            <span class="lbl opt">Conso énergie ECS N−2 <span class="hint">MWh/an</span></span>
+            <div class="input empty"><span class="ph">non renseigné</span><span class="unit">MWh/an</span></div>
+          </div>
+          <div class="field"></div>
+          <div class="field"></div>
+        </div>
+
+        <div class="subhead"><h4>Équipements existants</h4><span class="line"></span></div>
+        <div class="field-row">
+          <div class="field">
+            <span class="lbl opt">Puissance production ECS</span>
+            <div class="input empty"><span class="ph">non renseigné</span><span class="unit">kW</span></div>
+          </div>
+          <div class="field">
+            <span class="lbl opt">Volume ballon existant</span>
+            <div class="input empty"><span class="ph">non renseigné</span><span class="unit">L</span></div>
+          </div>
+          <div class="field">
+            <span class="lbl opt">Année de mise en service</span>
+            <div class="input empty"><span class="ph">non renseigné</span></div>
+          </div>
+          <div class="field"></div>
+        </div>
+
+        <div class="subhead"><h4>Puissance souscrite ECS</h4><span class="line"></span></div>
+        <div class="field-row">
+          <div class="field">
+            <span class="lbl opt">P souscrite ECS contrat</span>
+            <div class="input empty"><span class="ph">non renseigné</span><span class="unit">kW</span></div>
+          </div>
+          <div class="field" style="grid-column: span 3;"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Données ECS — cible projetée -->
+    <div class="card mb-3 projete-only ecs-target-card">
+      <div class="card-head">
+        <h3>Configuration ECS — cible projetée</h3>
+        <span class="meta">type de production et hypothèses de confort retenues pour le dimensionnement</span>
+      </div>
+      <div class="card-body">
+
+        <div class="subhead"><h4>Type de production ECS</h4><span class="line"></span></div>
+        <div class="type-choice">
+          <button class="type-card selected" type="button">
+            <span class="type-name">Semi-instantanée</span>
+            <span class="type-desc">échangeur + petit ballon tampon</span>
+          </button>
+          <button class="type-card" type="button">
+            <span class="type-name">Instantanée pure</span>
+            <span class="type-desc">échangeur seul · pas de stockage</span>
+          </button>
+          <button class="type-card" type="button">
+            <span class="type-name">À accumulation</span>
+            <span class="type-desc">ballon de stockage · production lissée</span>
+          </button>
+        </div>
+
+        <div class="subhead"><h4>Configuration ECS</h4><span class="line"></span></div>
+        <div class="field-row">
+          <div class="field">
+            <span class="lbl">Niveau de confort (norme)</span>
+            <div class="input"><span>T3 — standard</span></div>
+          </div>
+          <div class="field">
+            <span class="lbl">Durée pointe</span>
+            <div class="input"><span>3</span><span class="unit">h</span></div>
+          </div>
+          <div class="field"></div>
+          <div class="field"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Méthodes ECS -->
+    <div class="card mb-3 methods-card-ecs">
+      <div class="card-head">
+        <h3>Méthodes de calcul · puissance ECS</h3>
+        <span class="meta existant-only">M1A historique EF · M1B historique énergie · M2 approche lissée (a/b) · M4 souscrite</span>
+        <span class="meta projete-only-inline">M2 approche lissée (Th-BCE + DTU 60.11) · résultat retenu pour dimensionnement</span>
+      </div>
+      <div class="card-body">
+        <div class="methods" style="grid-template-columns: repeat(4, 1fr);">
+
+          <!-- Méthode 1A -->
+          <div class="method existant-only">
+            <div class="m-head">
+              <span class="m-id">MÉTHODE 1A</span>
+            </div>
+            <h5>Consommation historique EF</h5>
+            <div class="result">
+              <span class="val">318,6<span class="unit">kW</span></span>
+              <div class="note">conso EF N−1 ramenée à la pointe ECS</div>
+            </div>
+            <div class="formula">P = V<sub>EF</sub> · ρ · c<sub>p</sub> · ΔT / (n<sub>j</sub> · H<sub>pointe</sub>)<br>= 5 000 × 1,163 × 45 / (365 × 3)<br>= <strong>318,6 kW</strong></div>
+          </div>
+
+          <!-- Méthode 1B · Consommation historique énergie -->
+          <div class="method existant-only">
+            <div class="m-head">
+              <span class="m-id">MÉTHODE 1B</span>
+            </div>
+            <h5>Consommation historique énergie</h5>
+            <div class="result empty">
+              <span class="val">— <span class="unit">kW</span></span>
+              <div class="note">si compteur d'énergie ECS disponible</div>
+            </div>
+            <div class="formula">P = E̅<sub>MWh</sub> × 1 000 / (365 × H<sub>pointe</sub>)<br>H<sub>pointe</sub> = 3 h <span class="hint">Mod.0</span></div>
+            <div class="missing-msg">
+              <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span><span>Renseigner au moins une conso énergie ECS en MWh/an dans la section "Énergie compteur d'énergie".</span>
+            </div>
+          </div>
+
+          <!-- Méthode 2a · Ratios Th-BCE 2012 -->
+          <div class="method">
+            <div class="m-head">
+              <span class="m-id">MÉTHODE 2a</span>
+            </div>
+            <h5>Ratios Th-BCE 2012 · N<sub>adeq</sub></h5>
+            <div class="result">
+              <span class="val">285,4<span class="unit">kW</span></span>
+              <div class="note">N adultes équivalents × besoin unitaire (Th-BCE §17.2)</div>
+            </div>
+            <div class="formula">P = N<sub>adeq</sub> × a × ρ · c<sub>p</sub> · ΔT / (7 · H<sub>pointe</sub>)<br><br>
+N<sub>adeq</sub> = Σ(N<sub>type</sub> × ad<sub>type</sub>) — Th-BCE 2012 §17.2 :<br>
+&nbsp;&nbsp;T1 / T2&nbsp;&nbsp;48 logt × 1,8 = 86,4 ad_éq<br>
+&nbsp;&nbsp;T3 / T4&nbsp;&nbsp;57 logt × 2,5 = 142,5 ad_éq<br>
+&nbsp;&nbsp;<span style="border-top:1px solid var(--ink-3); display:inline-block; padding-top:2px; margin-top:2px;">105 logt → <strong>229 ad_éq</strong></span><br><br>
+a = 500 L/sem/ad_éq · ΔT = 45 °C · H<sub>pointe</sub> = 3 h<br>
+P = 229 × 500/7 × 1,163 × 45 / 3<br>
+= <strong>285,4 kW</strong></div>
+          </div>
+
+          <!-- Méthode 2b · DTU 60.11 -->
+          <div class="method">
+            <div class="m-head">
+              <span class="m-id">MÉTHODE 2b</span>
+            </div>
+            <h5>DTU 60.11 · simultanéité</h5>
+            <div class="result">
+              <span class="val">262,7<span class="unit">kW</span></span>
+              <div class="note">calcul hydraulique points de puisage</div>
+            </div>
+            <div class="formula">P = Σ q<sub>v</sub> × k<sub>simult.</sub> × ρ × c<sub>p</sub> × ΔT<br>k<sub>simult.</sub> = 0,8 / √(N−1) = 0,8 / √209 = <strong>0,055</strong><br>N = 2 points × 105 logt = 210 points<br>= <strong>262,7 kW</strong></div>
+          </div>
+
+        </div>
+
+        <!-- Méthode 3 · présentée en ligne car non applicable -->
+        <div class="method-line existant-only">
+          <span class="m-id">MÉTHODE 3</span>
+          <h5>Équipements existants — puissance installée<span class="sub">somme des puissances production ECS en place</span></h5>
+          <div class="formula">P = Σ P<sub>générateur ECS,i</sub> × η<sub>moyen</sub></div>
+          <div class="val-cell">— <span class="unit">kW</span></div>
+          <div class="hint-line">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span><span>Renseigner les générateurs ECS existants (ballons, échangeurs, production instantanée) et leur rendement.</span>
+          </div>
+        </div>
+
+        <!-- Méthode 4 · présentée en ligne car non applicable -->
+        <div class="method-line existant-only">
+          <span class="m-id">MÉTHODE 4</span>
+          <h5>Puissance souscrite ECS<span class="sub">référence contractuelle si disponible</span></h5>
+          <div class="formula">P = P<sub>souscrite, ECS</sub></div>
+          <div class="val-cell">— <span class="unit">kW</span></div>
+          <div class="hint-line">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span><span>Renseigner la puissance ECS du contrat de fourniture.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Synthèse ECS -->
+    <div class="card accent synth-card-ecs">
+      <div class="card-head">
+        <h3>Synthèse ECS</h3>
+        <span class="meta">approche lissée retenue · répartition échangeur 60 % / ballon 40 %</span>
+      </div>
+      <div class="synth" style="grid-template-columns: 1.3fr 1fr 1fr 1.1fr;">
+        <div class="cell kept">
+          <div class="ek">Puissance ECS retenue</div>
+          <div class="field" style="margin-top:6px; max-width:160px;">
+            <div class="input"><span>500</span><span class="unit">kW</span></div>
+          </div>
+          <div class="sub" style="margin-top:8px;">saisie ingénieur · décision à partir des méthodes calculées</div>
+        </div>
+        <div class="cell">
+          <div class="ek">Majoration</div>
+          <div class="field" style="margin-top:6px; max-width:140px;">
+            <div class="input"><span>20</span><span class="unit">%</span></div>
+          </div>
+          <div class="sub" style="margin-top:8px;">sécurité points puisage simultanés</div>
+        </div>
+        <div class="cell">
+          <div class="ek">Durée ballon</div>
+          <div class="field" style="margin-top:6px; max-width:140px;">
+            <div class="input"><span>40</span><span class="unit">min</span></div>
+          </div>
+          <div class="sub" style="margin-top:8px;">temps de relève à puissance nominale</div>
+        </div>
+        <div class="cell">
+          <div class="ek">Répartition échangeur / ballon</div>
+          <div class="field" style="margin-top:6px; max-width:170px;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <div class="input" style="padding:6px 8px;"><span>60</span><span class="unit">%</span></div>
+              <span style="color:var(--ink-4); font-size:13px;">/</span>
+              <div class="input" style="padding:6px 8px; background:var(--panel-2); color:var(--ink-2);"><span>40</span><span class="unit">%</span></div>
+            </div>
+          </div>
+          <div class="sub" style="margin-top:8px;">échangeur 360 kW · ballon 1 146 L</div>
+        </div>
+      </div>
+      <div style="padding: 0 18px 18px 18px;">
+        <div class="equip-grid">
+          <div class="equip-card">
+            <div class="equip-icon" aria-hidden="true">
+              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="10" y="14" width="28" height="20" rx="2"></rect>
+                <line x1="14" y1="14" x2="14" y2="34"></line>
+                <line x1="18" y1="14" x2="18" y2="34"></line>
+                <line x1="22" y1="14" x2="22" y2="34"></line>
+                <line x1="26" y1="14" x2="26" y2="34"></line>
+                <line x1="30" y1="14" x2="30" y2="34"></line>
+                <line x1="34" y1="14" x2="34" y2="34"></line>
+                <path d="M6 18 H10 M38 18 H42"></path>
+                <path d="M6 30 H10 M38 30 H42"></path>
+              </svg>
+            </div>
+            <div class="ek">Échangeur recommandé</div>
+            <div class="big">360<span class="u">kW</span></div>
+            <div class="sub">Échangeur à plaques · régime 95/70 → 60/40 · pincement 10 °C</div>
+          </div>
+          <div class="equip-card">
+            <div class="equip-icon" aria-hidden="true">
+              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 10 H32 V36 a4 4 0 0 1-4 4 H20 a4 4 0 0 1-4-4 Z"></path>
+                <ellipse cx="24" cy="10" rx="8" ry="2.5"></ellipse>
+                <line x1="19" y1="22" x2="29" y2="22" stroke-dasharray="2 2"></line>
+                <line x1="19" y1="28" x2="29" y2="28" stroke-dasharray="2 2"></line>
+                <line x1="24" y1="40" x2="24" y2="44"></line>
+              </svg>
+            </div>
+            <div class="ek">Ballon recommandé</div>
+            <div class="big">1 146<span class="u">L</span></div>
+            <div class="sub">Stockage tampon · 40 min relève à puissance nominale</div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </section></div>
+
+  
+
+  
+
+  <!-- ====================================================== -->
+  <!-- T° retour secondaire pondéré (projeté only)             -->
+  <!-- ====================================================== -->
+  <div class="card cold mb-3 projete-only" style="margin-top:18px;">
+    <div class="card-head">
+      <h3>T° retour primaire — mélange CH + ECS à −7 °C</h3>
+      <span class="meta">mélange pondéré des retours côté primaire RCU · contrainte concédant</span>
+    </div>
+
+    <div class="card-body">
+
+      <div class="mix-compact">
+
+        <!-- Côté chauffage : compact -->
+        <div class="mix-side">
+          <div class="mix-side-head">
+            <span class="mix-tag">Côté chauffage</span>
+            <span class="mix-power">372,6 kW</span>
+          </div>
+          <div class="mix-side-vals">
+            <div><span class="k">Q prim.</span><span class="v">8,0 <span class="u">m³/h</span></span></div>
+            <div class="mix-side-ret"><span class="k">T° retour</span><span class="v">42<span class="u">°C</span></span></div>
+          </div>
+          <details class="mix-side-detail">
+            <summary>Détail du calcul</summary>
+            <div class="mix-departs">
+              <div class="mix-departs-head">
+                <span>Départ</span><span>T°dep</span><span>ΔT</span><span>T°ret</span><span>Q sec</span>
+              </div>
+              <div class="mix-departs-row">
+                <span>Départ 1 (radiateurs)</span>
+                <span class="mono">60</span>
+                <span class="mono">20</span>
+                <span class="mono">40</span>
+                <span class="mono">1,0</span>
+              </div>
+            </div>
+            <div class="mix-ch-steps">
+              <div><span class="k">T° retour secondaire pondéré</span><span class="v">40 °C</span></div>
+              <div><span class="k">+ Pincement échangeur</span><span class="v">2 °C <span class="hint">Mod.0</span></span></div>
+              <div class="mix-ch-total"><span class="k">= T° retour primaire CH</span><span class="v">42 °C</span></div>
+            </div>
+          </details>
+        </div>
+
+        <!-- Côté ECS : compact -->
+        <div class="mix-side">
+          <div class="mix-side-head">
+            <span class="mix-tag">Côté ECS</span>
+            <span class="mix-power">360 kW <span class="mix-power-sub">échangeur</span></span>
+          </div>
+          <div class="mix-side-vals">
+            <div><span class="k">Q prim.</span><span class="v">7,7 <span class="u">m³/h</span></span></div>
+            <div class="mix-side-ret"><span class="k">T° retour <span class="hint">Mod.0</span></span><span class="v">50<span class="u">°C</span></span></div>
+          </div>
+          <details class="mix-side-detail">
+            <summary>Hypothèse Module 0</summary>
+            <div style="font-size:11.5px; color:var(--ink-3); line-height:1.5; padding:6px 2px 0;">
+              T° retour primaire ECS = déterminée par les régimes ECS Module 0 (T° départ, T° retour bouclage, T° eau froide, pincement échangeur).
+            </div>
+          </details>
+        </div>
+
+        <!-- = Résultat -->
+        <div class="mix-eq" aria-hidden="true">=</div>
+
+        <!-- Résultat global -->
+        <div class="mix-result">
+          <div class="ek">T° retour primaire</div>
+          <div class="big-val">45,9<span class="u">°C</span></div>
+          <div class="sub">Q RCU 15,7 m³/h</div>
+          <div class="mix-result-formula">
+            <span>(42 × 8,0 + 50 × 7,7) / 15,7</span>
+            <span>= <strong>45,9 °C</strong></span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Synoptique combiné CH + ECS — visible en mode Projeté   -->
+  <!-- ====================================================== -->
+  <div class="card cold mb-3 projete-only" style="margin-top:18px;">
+    <div class="card-head">
+      <h3>Synoptique échangeur chauffage + ECS semi-instantanée</h3>
+      <div style="margin-left:auto;">
+        <select style="font-size:11.5px; padding:3px 8px; border:1px solid var(--line); border-radius:var(--r); background:#fff; color:var(--ink-2);">
+          <option>Semi-instantanée</option>
+          <option>Instantanée pure</option>
+          <option>à accumulation</option>
+        </select>
+      </div>
+    </div>
+    <div class="synoptic">
+      <div class="synoptic-layout">
+      <svg viewBox="0 0 820 460" width="100%" preserveAspectRatio="xMidYMid meet" font-family="Inter, Helvetica, sans-serif" style="display:block; max-width:940px; margin:0 auto;">
+        <defs>
+          <marker id="aHotDk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#d96a4f"></path>
+          </marker>
+          <marker id="aHotLt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#ec9279"></path>
+          </marker>
+          <marker id="aColdDk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#2a4d87"></path>
+          </marker>
+          <marker id="aColdLt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#8db2da"></path>
+          </marker>
+        </defs>
+
+        <!-- ============== LABELS GAUCHE (RCU global) ============== -->
+        <text x="14" y="34" font-size="11" fill="#8a3a25" font-weight="700">Arrivée RCU</text>
+        <text x="14" y="50" font-size="13" fill="#8a3a25" font-weight="700" font-family="Inter, Helvetica, Arial, sans-serif">90 °C</text>
+
+        <text x="14" y="100" font-size="10.5" fill="#4a5159" font-weight="500">Q général RCU</text>
+        <text x="14" y="116" font-size="13" fill="#1b1f23" font-weight="700" font-family="Inter, Helvetica, Arial, sans-serif">14,41 m³/h</text>
+
+        <text x="14" y="184" font-size="11" fill="#5a7bb0" font-weight="700">Retour RCU</text>
+        <text x="14" y="200" font-size="13" fill="#5a7bb0" font-weight="700" font-family="Inter, Helvetica, Arial, sans-serif">46,3 °C</text>
+
+        <!-- ============== ÉCHANGEUR CH ============== -->
+        <rect x="300" y="40" width="220" height="120" rx="10" fill="#fff" stroke="#c5cad3" stroke-width="1.5"></rect>
+        <text x="410" y="80" text-anchor="middle" font-size="15" fill="#1b1f23" font-weight="700" font-family="Inter, Helvetica, Arial, sans-serif">P retenue CH = 372,6 kW</text>
+        <text x="410" y="100" text-anchor="middle" font-size="11" fill="#7a828c">P utile = 324 kW</text>
+        <text x="410" y="138" text-anchor="middle" font-size="10" fill="#7a828c" letter-spacing="1.4" font-weight="600">ÉCHANGEUR CH</text>
+
+        <!-- Primaire CH aller : flèche L (entre par gauche, plonge) -->
+        <text x="180" y="34" font-size="10" fill="#4a5159" font-weight="500">Q prim. CH</text>
+        <text x="180" y="50" font-size="11.5" fill="#8a3a25" font-weight="700" font-family="Inter, Helvetica, Arial, sans-serif">6,7 m³/h</text>
+        <path d="M 20 60 L 300 60" fill="none" stroke="#d96a4f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#aHotDk)"></path>
+
+        <!-- Primaire CH retour : sort par gauche -->
+        <text x="180" y="134" font-size="11.5" fill="#5a7bb0" font-weight="700" font-family="Inter, Helvetica, Arial, sans-serif">42 °C</text>
+        <text x="180" y="148" font-size="10" fill="#7a828c" font-weight="500">Ret. prim. CH</text>
+        <path d="M 300 140 L 20 140" fill="none" stroke="#8db2da" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#aColdLt)"></path>
+
+        <!-- Secondaire CH aller : sort par droite -->
+        <text x="660" y="34" font-size="10" fill="#4a5159" font-weight="500">Q sec. CH</text>
+        <text x="660" y="50" font-size="11.5" fill="#8a3a25" font-weight="700" font-family="Inter, Helvetica, Arial, sans-serif">16 m³/h</text>
+        <path d="M 520 60 L 800 60" fill="none" stroke="#ec9279" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#aHotLt)"></path>
+
+        <!-- Secondaire CH retour : entre par droite -->
+        <path d="M 800 140 L 520 140" fill="none" stroke="#2a4d87" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#aColdDk)"></path>
+
+        <!-- ============== ÉCHANGEUR ECS ============== -->
+        <rect x="300" y="240" width="220" height="120" rx="10" fill="#fff" stroke="#c5cad3" stroke-width="1.5"></rect>
+        <text x="410" y="280" text-anchor="middle" font-size="15" fill="#1b1f23" font-weight="700" font-family="Inter, Helvetica, Arial, sans-serif">P retenue ECS = 360 kW</text>
+        <text x="410" y="300" text-anchor="middle" font-size="11" fill="#7a828c">P utile = 300 kW</text>
+        <text x="410" y="338" text-anchor="middle" font-size="10" fill="#7a828c" letter-spacing="1.4" font-weight="600">ÉCHANGEUR ECS</text>
+
+        <!-- Primaire ECS aller -->
+        <text x="180" y="296" font-size="10" fill="#4a5159" font-weight="500">Q prim. ECS</text>
+        <text x="180" y="312" font-size="11.5" fill="#8a3a25" font-weight="700" font-family="Inter, Helvetica, Arial, sans-serif">7,7 m³/h</text>
+        <path d="M 20 260 L 300 260" fill="none" stroke="#d96a4f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#aHotDk)"></path>
+
+        <!-- Primaire ECS retour -->
+        <text x="180" y="312" font-size="11.5" fill="#5a7bb0" font-weight="700" font-family="Inter, Helvetica, Arial, sans-serif">50 °C</text>
+        <text x="180" y="328" font-size="10" fill="#7a828c" font-weight="500">Ret. prim. ECS</text>
+        <!-- Primaire ECS retour : bifurque vers le haut à mi-chemin pour rejoindre le retour primaire CH -->
+        <path d="M 300 320 L 160 320 L 160 140" fill="none" stroke="#8db2da" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#aColdLt)" style="stroke-width: 3.5px"></path>
+
+        <!-- Secondaire ECS : exit CH → vers ballon avec coude  -->
+        <text x="582" y="234" font-size="10" fill="#4a5159" font-weight="500">Q sec. ECS</text>
+        <text x="582" y="250" font-size="11.5" fill="#8a3a25" font-weight="700" font-family="Inter, Helvetica, Arial, sans-serif">15,5 m³/h</text>
+        <path d="M 520 260 L 620 260 L 620 240" fill="none" stroke="#ec9279" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#aHotLt)"></path>
+
+        <!-- Sortie haut ballon : départ ECS vers bâtiment -->
+        <path d="M 720 260 L 800 260" fill="none" stroke="#ec9279" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#aHotLt)"></path>
+
+        <!-- Retour bouclage : entre par droite, va jusqu'au bas-droite ECS -->
+        <path d="M 800 340 L 500 340" fill="none" stroke="#2a4d87" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#aColdDk)"></path>
+
+        <!-- BALLON ECS : vertical à droite, plus haut -->
+        <rect x="620" y="240" width="100" height="120" rx="22" fill="#cbe3d5" stroke="#2f8b66" stroke-width="1.5"></rect>
+        <text x="670" y="275" text-anchor="middle" font-size="11" fill="#13513a" font-weight="700">Ballon</text>
+        <text x="670" y="292" text-anchor="middle" font-size="11" fill="#13513a" font-weight="700">ECS</text>
+        <text x="670" y="325" text-anchor="middle" font-size="13" fill="#13513a" font-weight="700" font-family="Inter, Helvetica, Arial, sans-serif">1 146 L</text>
+      </svg>
+
+      <aside class="synoptic-recap">
+        <div class="synoptic-recap-section">
+          <div class="synoptic-recap-title">Primaire RCU</div>
+          <div class="synoptic-recap-row"><span class="k">T° aller</span><span class="v hot">90 °C</span></div>
+          <div class="synoptic-recap-row"><span class="k">T° retour global</span><span class="v cold">45,9 °C</span></div>
+          <div class="synoptic-recap-row"><span class="k">Q général RCU</span><span class="v">15,7 m³/h</span></div>
+        </div>
+
+        <div class="synoptic-recap-section">
+          <div class="synoptic-recap-title hot">Chauffage</div>
+          <div class="synoptic-recap-row"><span class="k">P retenue</span><span class="v">372,6 kW</span></div>
+          <div class="synoptic-recap-row"><span class="k">P utile</span><span class="v">324 kW</span></div>
+          <div class="synoptic-recap-sep"></div>
+          <div class="synoptic-recap-row"><span class="k">Q prim. CH</span><span class="v">8,0 m³/h</span></div>
+          <div class="synoptic-recap-row"><span class="k">T° retour prim.</span><span class="v">42 °C</span></div>
+          <div class="synoptic-recap-sep"></div>
+          <div class="synoptic-recap-row"><span class="k">Q sec. CH</span><span class="v">16 m³/h</span></div>
+          <div class="synoptic-recap-row"><span class="k">T° dép. sec.</span><span class="v">60 °C</span></div>
+          <div class="synoptic-recap-row"><span class="k">T° ret. sec. pondéré</span><span class="v">40 °C</span></div>
+        </div>
+
+        <div class="synoptic-recap-section">
+          <div class="synoptic-recap-title cold">ECS</div>
+          <div class="synoptic-recap-row"><span class="k">P échangeur</span><span class="v">360 kW</span></div>
+          <div class="synoptic-recap-row"><span class="k">Volume ballon</span><span class="v">1 146 L</span></div>
+          <div class="synoptic-recap-sep"></div>
+          <div class="synoptic-recap-row"><span class="k">Q prim. ECS</span><span class="v">7,7 m³/h</span></div>
+          <div class="synoptic-recap-row"><span class="k">T° retour prim.</span><span class="v">50 °C</span></div>
+          <div class="synoptic-recap-sep"></div>
+          <div class="synoptic-recap-row"><span class="k">T° départ ECS</span><span class="v">60 °C</span></div>
+          <div class="synoptic-recap-row"><span class="k">T° retour bouclage</span><span class="v">53 °C</span></div>
+          <div class="synoptic-recap-row"><span class="k">T° eau froide</span><span class="v">10 °C</span></div>
+        </div>
+      </aside>
+
+      </div>
+
+      <div class="synoptic-legend">
+        <span><span class="swatch" style="background:#d96a4f;"></span>chaud primaire (RCU 90 °C)</span>
+        <span><span class="swatch" style="background:#ec9279;"></span>chaud secondaire (départs)</span>
+        <span><span class="swatch" style="background:#8db2da;"></span>froid primaire (retour RCU)</span>
+        <span><span class="swatch" style="background:#2a4d87;"></span>froid secondaire (bouclage 53 °C + EF 10 °C, depuis Mod.0)</span>
+        <span style="margin-left:auto; color:var(--ink-3);">Montage parallèle CH + ECS · Q (m³/h) = P (kW) / (1,163 × ΔT)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Commentaire / justification (commun aux 2 onglets)     -->
+  <!-- ====================================================== -->
+  <div class="card" style="margin-top:18px;">
+    <div class="card-head">
+      <h3>Commentaire / justification</h3>
+      <span class="meta">noté dans le rapport · justifie les hypothèses retenues et les écarts entre méthodes</span>
+    </div>
+    <div class="card-body">
+      <textarea class="input" placeholder="Hypothèses retenues, cohérence avec mesures, notes…"></textarea>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+        <span style="font-size:11.5px; color:var(--ink-3);">Dernier enregistrement : aujourd'hui 14:32 · JD</span>
+        <div style="display:flex; gap:8px;">
+          <button class="btn">Annuler</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+</main>
+
+<!-- ============================================================ -->
+<!-- Sticky bottom : bilan global — supprimé                      -->
+<!-- ============================================================ -->
+
+<script>
+  // Tab switching
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.tab-panel');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.getAttribute('data-tab');
+      tabs.forEach(x => x.setAttribute('aria-selected', x === t ? 'true' : 'false'));
+      if (target === 'projete') {
+        // Projeté → for now shows CH + ECS combined (placeholder identical to existant)
+        panels.forEach(p => {
+          const pt = p.getAttribute('data-tab');
+          p.setAttribute('data-active', (pt === 'ch' || pt === 'ecs') ? 'true' : 'false');
+        });
+        document.body.setAttribute('data-state', 'projete');
+      } else {
+        panels.forEach(p => p.setAttribute('data-active', p.getAttribute('data-tab') === target ? 'true' : 'false'));
+        document.body.setAttribute('data-state', 'existant');
+      }
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    });
+  });
+  document.body.setAttribute('data-state', 'existant');
+
+  // Reuse-init : cases à cocher → application automatique
+  const reuseInit = document.querySelector('.reuse-init');
+  if (reuseInit) {
+    const rows = reuseInit.querySelectorAll('.reuse-row');
+    const checkboxes = reuseInit.querySelectorAll('.reuse-row input[type="checkbox"]');
+
+    function syncRows() {
+      rows.forEach(r => {
+        const cb = r.querySelector('input[type="checkbox"]');
+        if (cb.checked) r.classList.add('applied');
+        else r.classList.remove('applied');
+        // Toggle .reused on the target méthodes + synthèse cards (only in projeté state)
+        const target = r.getAttribute('data-target');
+        if (target) {
+          const targets = [];
+          if (target === 'methods-card-ch') targets.push('.methods-card-ch', '.synth-card-ch');
+          else if (target === 'methods-card-ecs') targets.push('.methods-card-ecs', '.synth-card-ecs', '.ecs-target-card');
+          else targets.push('.' + target);
+          targets.forEach(sel => {
+            const el = document.querySelector(sel);
+            if (el) {
+              if (cb.checked) el.classList.add('reused');
+              else el.classList.remove('reused');
+            }
+          });
+        }
+      });
+    }
+
+    checkboxes.forEach(cb => {
+      cb.addEventListener('change', syncRows);
+    });
+
+    syncRows();
+  }
+
+  // Collapsible hypothesis bar
+  const hypBar = document.getElementById('hypBar');
+  document.getElementById('hypHead').addEventListener('click', () => {
+    hypBar.classList.toggle('collapsed');
+  });
+</script>
+
+
+
+</body></html>
