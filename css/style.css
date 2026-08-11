@@ -1268,6 +1268,33 @@
   .card .card-head .meta { margin-left: auto; font-size: 11.5px; color: var(--ink-3); }
   .card .card-body { padding: 16px; }
 
+  /* Titre du formulaire SST — doit dominer visuellement tout le reste du panneau */
+  #form-sst-title { font-size: 17px; font-weight: 700; }
+
+  /* Formulaire SST : largeur alignée sur les pages M0 (1440px), plus étroit
+     que le tableau M1 qui lui utilise toute la largeur disponible — centré
+     dans la page puisque celle-ci est plus large que le formulaire. */
+  #form-sst-card { max-width: 1440px; margin: 0 auto 14px auto; }
+
+  /* Bloc "État de la sous-station" : panneau teinté (pas une carte imbriquée). */
+  .sst-etats-panel {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 18px 20px;
+    margin: 20px 0;
+  }
+
+  /* "Surcharges SST" : encadré pointillé pour marquer un bloc optionnel / de substitution */
+  .sst-surcharges-box {
+    background: #fff;
+    border: 1px dashed var(--line);
+    border-radius: var(--r);
+    padding: 14px 16px;
+    margin-top: 10px;
+  }
+  .sst-surcharges-box .subhead { margin-top: 0; }
+
   .grid-12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
   .col-12 { grid-column: span 12; }
   .col-8  { grid-column: span 8; }
@@ -1411,6 +1438,20 @@
     font-weight: 600;
   }
   .subhead .line { flex: 1; height: 1px; background: var(--line-2); }
+
+  /* Sous-titre "de section" (1er niveau, ex. formulaire SST) — nettement plus
+     marqué que .subhead (réservé aux sous-groupes imbriqués), pour que la
+     hiérarchie section > sous-groupe se lise d'un coup d'œil. */
+  .subhead.lg { margin: 30px 0 14px 0; gap: 10px; }
+  .card-body > .subhead.lg:first-child { margin-top: 0; }
+  .subhead.lg h4 {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .subhead.lg .line { background: var(--line); }
 
   /* ---------- Method columns ---------- */
   .methods {
@@ -2544,6 +2585,21 @@
     letter-spacing: .06em;
     color: var(--ink-3);
     font-weight: 600;
+  }
+  /* Ligne "somme" — totalise les SST valides affichées (reflète les filtres actifs) */
+  .sst-table tbody tr.sst-sum-row td {
+    background: var(--muted-bg);
+    border-top: 1px solid var(--ink-4);
+    border-bottom: 1px solid var(--ink-4);
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .sst-table tbody tr.sst-sum-row td:first-child {
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-size: 10.5px;
+    color: var(--ink-2);
   }
 
   /* Dropdown de filtre (singleton injecté en fin de body) */

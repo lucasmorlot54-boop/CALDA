@@ -374,12 +374,11 @@ function ouvrirFormulaireEdition(index) {
   const _etatEffectif = _etatExiste ? _etatCible : (s.hasExistant ? 'existant' : 'projete');
   setEtatActif(_etatEffectif);
 
-  // ── Boutons Supprimer : visibles seulement si les deux états actifs ───
-  const bothActive = !!(s.hasExistant && s.hasProjete);
+  // ── Boutons Supprimer : visibles indépendamment pour chaque état actif ───
   const suppE = document.getElementById('sst-supprimer-existant');
   const suppP = document.getElementById('sst-supprimer-projete');
-  if (suppE) suppE.style.display = bothActive ? '' : 'none';
-  if (suppP) suppP.style.display = bothActive ? '' : 'none';
+  if (suppE) suppE.style.display = s.hasExistant ? '' : 'none';
+  if (suppP) suppP.style.display = s.hasProjete  ? '' : 'none';
 
   _m1TakeSnapshot();
   _resetDirty();
@@ -861,7 +860,7 @@ function rendreTableau() {
     const pChPart  = b.typeService === 'ECS' ? null : pCh;
     const pEcsPart = b.typeService === 'CH'  ? null : pEcs;
     const pTotal   = (pChPart == null && pEcsPart == null) ? null : (pChPart ?? 0) + (pEcsPart ?? 0);
-    return `
+    const html = `
     <tr class="${etatExiste ? 'sst-row' : 'sst-row sst-row-fallback'}" onclick="allerVersM2(${i})" title="Cliquer pour ouvrir dans Module 2">
       <td>
         <strong>${esc(s.ref)}</strong>
@@ -882,15 +881,37 @@ function rendreTableau() {
         <button class="btn btn-danger btn-sm"  onclick="supprimerSST(${i})" style="margin-left:4px">✕</button>
       </td>
     </tr>`;
+    return { html, sref: b.sref, nbLogements: b.nbLogements, pCh: pChPart, pEcs: pEcsPart, pTotal };
   };
 
-  const validesHtml   = valides.map(buildRow).join('');
-  const invalidesHtml = invalides.map(buildRow).join('');
+  const valideRows   = valides.map(buildRow);
+  const invalideRows = invalides.map(buildRow);
+  const validesHtml   = valideRows.map(r => r.html).join('');
+  const invalidesHtml = invalideRows.map(r => r.html).join('');
+
+  // Ligne « somme » entre les SST valides et celles sans donnée — reflète le
+  // filtre courant (recalculée à chaque rendu, comme le compteur d'en-tête).
+  const sumSref        = valideRows.reduce((acc, r) => acc + (r.sref        ?? 0), 0);
+  const sumNbLogements = valideRows.reduce((acc, r) => acc + (r.nbLogements ?? 0), 0);
+  const sumPCh    = valideRows.reduce((acc, r) => acc + (r.pCh   ?? 0), 0);
+  const sumPEcs   = valideRows.reduce((acc, r) => acc + (r.pEcs  ?? 0), 0);
+  const sumPTotal = valideRows.reduce((acc, r) => acc + (r.pTotal ?? 0), 0);
+  const sommeHtml = valides.length ? `<tr class="sst-sum-row">
+      <td colspan="5">Total — ${valides.length} SST</td>
+      <td>${sumSref.toLocaleString('fr-FR')}</td>
+      <td>${sumNbLogements.toLocaleString('fr-FR')}</td>
+      <td></td>
+      <td style="text-align:center;color:var(--hot-ink)">${Math.round(sumPCh)}</td>
+      <td style="text-align:center;color:var(--cold-ink)">${Math.round(sumPEcs)}</td>
+      <td style="text-align:center;color:var(--accent-ink)">${Math.round(sumPTotal)}</td>
+      <td></td>
+    </tr>` : '';
+
   const separateurHtml = (valides.length && invalides.length)
     ? `<tr class="sst-separator"><td colspan="12"><div class="sst-separator-line">SST sans donnée pour l'état « ${etatChoisi === 'existant' ? 'Existant' : 'Projeté'} »</div></td></tr>`
     : '';
 
-  tbody.innerHTML = validesHtml + separateurHtml + invalidesHtml;
+  tbody.innerHTML = validesHtml + sommeHtml + separateurHtml + invalidesHtml;
   _majCompteur(triees.length, sousStations.length);
   _majEntetesTableau();
 }
@@ -1091,9 +1112,9 @@ function activerEtat(etat) {
   if (srcN    && dstN)    dstN.value    = srcN.value;
   if (srcSref && dstSref) dstSref.value = srcSref.value;
   updateNbLogementsVisibility(etat);
-  // Les deux états actifs → afficher le bouton Supprimer de l'autre
-  const suppAutre = document.getElementById('sst-supprimer-' + autre);
-  if (suppAutre) suppAutre.style.display = '';
+  // Afficher le bouton Supprimer de l'état qu'on vient d'activer
+  const supp = document.getElementById('sst-supprimer-' + etat);
+  if (supp) supp.style.display = '';
   setEtatActif(etat);
 }
 
@@ -1103,25 +1124,25 @@ function desactiverEtat(etat) {
   const cta    = document.getElementById('sst-etat-cta-'    + etat);
   const fields = document.getElementById('sst-etat-fields-' + etat);
   const tab    = document.getElementById('sst-etat-tab-'    + etat);
+  const supp   = document.getElementById('sst-supprimer-'   + etat);
   if (!cta || !fields || !tab) return;
   fields.querySelectorAll('input, select').forEach(el => { el.value = ''; });
   fields.style.display = 'none';
   cta.style.display    = '';
   tab.classList.add('disabled');
-  // Un seul état restant → masquer son bouton Supprimer
-  const suppAutre = document.getElementById('sst-supprimer-' + autre);
-  if (suppAutre) suppAutre.style.display = 'none';
+  if (supp) supp.style.display = 'none';
   setEtatActif(autre);
 }
 
-// Réinitialise onglets + panels à l'état par défaut : Existant actif, Projeté désactivé
-// Appelé par viderFormulaire() et (en 2.3) par ouvrirFormulaireEdition()
+// Réinitialise onglets + panels à l'état par défaut : aucun état pré-créé,
+// l'utilisateur doit explicitement "Ajouter l'état Existant/Projeté".
+// Appelé par viderFormulaire() et par ouvrirFormulaireEdition()
 function reinitialiserEtatTabs() {
   const g = id => document.getElementById(id);
   if (!g('sst-etat-tab-existant')) return;
-  // Onglets
+  // Onglets — Existant reste l'onglet affiché par défaut, mais aucun des deux n'est créé
   g('sst-etat-tab-existant').classList.add('active');
-  g('sst-etat-tab-existant').classList.remove('disabled');
+  g('sst-etat-tab-existant').classList.add('disabled');
   g('sst-etat-tab-projete')?.classList.remove('active');
   g('sst-etat-tab-projete')?.classList.add('disabled');
   // Panels
@@ -1129,17 +1150,17 @@ function reinitialiserEtatTabs() {
   const panelProj  = g('sst-etat-panel-projete');
   if (panelExist) panelExist.style.display = '';
   if (panelProj)  panelProj.style.display  = 'none';
-  // CTA / champs Existant
+  // CTA / champs Existant — état non créé par défaut
   const ctaExist    = g('sst-etat-cta-existant');
   const fieldsExist = g('sst-etat-fields-existant');
-  if (ctaExist)    ctaExist.style.display    = 'none';
-  if (fieldsExist) fieldsExist.style.display = '';
-  // CTA / champs Projeté
+  if (ctaExist)    ctaExist.style.display    = '';
+  if (fieldsExist) fieldsExist.style.display = 'none';
+  // CTA / champs Projeté — état non créé par défaut
   const ctaProj    = g('sst-etat-cta-projete');
   const fieldsProj = g('sst-etat-fields-projete');
   if (ctaProj)    ctaProj.style.display    = '';
   if (fieldsProj) fieldsProj.style.display = 'none';
-  // Boutons Supprimer (masqués — un seul état actif par défaut)
+  // Boutons Supprimer (masqués — aucun état actif par défaut)
   const suppExist = g('sst-supprimer-existant');
   const suppProj  = g('sst-supprimer-projete');
   if (suppExist) suppExist.style.display = 'none';

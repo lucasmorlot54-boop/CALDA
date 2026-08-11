@@ -396,7 +396,7 @@
     <div class="card-head"><h3 id="form-sst-title">Nouvelle sous-station</h3></div>
     <div class="card-body">
 
-      <div class="subhead"><h4>Identification</h4><div class="line"></div></div>
+      <div class="subhead lg"><h4>Identification</h4><div class="line"></div></div>
       <div class="field-row cols-3">
         <div class="field">
           <label class="lbl" for="sst-ref">Référence SST *</label>
@@ -424,9 +424,8 @@
       </div>
 
       <!-- ── Bloc État de la sous-station ── -->
-      <div class="card mt-3" id="sst-etats-card">
-        <div class="card-head"><h3>État de la sous-station</h3></div>
-        <div class="card-body">
+      <div class="sst-etats-panel" id="sst-etats-card">
+        <div class="subhead lg"><h4>État de la sous-station</h4><div class="line"></div></div>
 
           <div class="sst-etat-tabs" role="tablist">
             <button type="button" class="sst-etat-tab p2-mode-btn active" data-etat="existant"
@@ -511,34 +510,36 @@
                 </div>
               </div>
 
-              <div class="subhead mt-2"><h4>Surcharges SST</h4><div class="line"></div></div>
-              <p class="field-hint mb-2">Laisser vide pour hériter des valeurs du tableau Module 0 (par type de bâtiment).</p>
-              <div id="sst-ovr-m0-info" class="m0-info-strip" style="display:none"></div>
-              <div class="field-row cols-3">
-                <div class="field">
-                  <label class="lbl" for="sst-ovr-ratio--existant">Ratio W/m²</label>
-                  <input type="number" class="input" id="sst-ovr-ratio--existant" step="1" min="0"
-                         placeholder="hérité Module 0" />
-                </div>
-                <div class="field">
-                  <label class="lbl" for="sst-ovr-interm--existant">Intermittence</label>
-                  <input type="number" class="input" id="sst-ovr-interm--existant" step="0.05" min="0" max="1"
-                         placeholder="hérité Module 0" />
-                </div>
-                <div class="field">
-                  <label class="lbl" for="sst-ovr-duree--existant">Durée h/an</label>
-                  <input type="number" class="input" id="sst-ovr-duree--existant" step="100" min="0"
-                         placeholder="hérité Module 0" />
-                </div>
-                <div class="field">
-                  <label class="lbl" for="sst-ovr-hPointe--existant">H. pointe ECS (h/j)</label>
-                  <input type="number" class="input" id="sst-ovr-hPointe--existant" step="0.5" min="0"
-                         placeholder="hérité Module 0" />
-                </div>
-                <div class="field">
-                  <label class="lbl" for="sst-ovr-puEcs--existant">Puissance unitaire ECS (<span id="sst-ovr-puecs-unit">kW/logt</span>)</label>
-                  <input type="number" class="input" id="sst-ovr-puEcs--existant" step="0.1" min="0"
-                         placeholder="hérité Module 0" />
+              <div class="sst-surcharges-box">
+                <div class="subhead"><h4>Surcharges SST</h4><div class="line"></div></div>
+                <p class="field-hint mb-2">Laisser vide pour hériter des valeurs du tableau Module 0 (par type de bâtiment).</p>
+                <div id="sst-ovr-m0-info" class="m0-info-strip" style="display:none"></div>
+                <div class="field-row cols-3">
+                  <div class="field">
+                    <label class="lbl" for="sst-ovr-ratio--existant">Ratio W/m²</label>
+                    <input type="number" class="input" id="sst-ovr-ratio--existant" step="1" min="0"
+                           placeholder="hérité Module 0" />
+                  </div>
+                  <div class="field">
+                    <label class="lbl" for="sst-ovr-interm--existant">Intermittence</label>
+                    <input type="number" class="input" id="sst-ovr-interm--existant" step="0.05" min="0" max="1"
+                           placeholder="hérité Module 0" />
+                  </div>
+                  <div class="field">
+                    <label class="lbl" for="sst-ovr-duree--existant">Durée h/an</label>
+                    <input type="number" class="input" id="sst-ovr-duree--existant" step="100" min="0"
+                           placeholder="hérité Module 0" />
+                  </div>
+                  <div class="field">
+                    <label class="lbl" for="sst-ovr-hPointe--existant">H. pointe ECS (h/j)</label>
+                    <input type="number" class="input" id="sst-ovr-hPointe--existant" step="0.5" min="0"
+                           placeholder="hérité Module 0" />
+                  </div>
+                  <div class="field">
+                    <label class="lbl" for="sst-ovr-puEcs--existant">Puissance unitaire ECS (<span id="sst-ovr-puecs-unit">kW/logt</span>)</label>
+                    <input type="number" class="input" id="sst-ovr-puEcs--existant" step="0.1" min="0"
+                           placeholder="hérité Module 0" />
+                  </div>
                 </div>
               </div>
 
@@ -620,33 +621,35 @@
                 </div>
               </div>
 
-              <div class="subhead mt-2"><h4>Surcharges SST</h4><div class="line"></div></div>
-              <p class="field-hint mb-2">Laisser vide pour hériter des valeurs du tableau Module 0 (par type de bâtiment).</p>
-              <div class="field-row cols-3">
-                <div class="field">
-                  <label class="lbl" for="sst-ovr-ratio--projete">Ratio W/m²</label>
-                  <input type="number" class="input" id="sst-ovr-ratio--projete" step="1" min="0"
-                         placeholder="hérité Module 0" />
-                </div>
-                <div class="field">
-                  <label class="lbl" for="sst-ovr-interm--projete">Intermittence</label>
-                  <input type="number" class="input" id="sst-ovr-interm--projete" step="0.05" min="0" max="1"
-                         placeholder="hérité Module 0" />
-                </div>
-                <div class="field">
-                  <label class="lbl" for="sst-ovr-duree--projete">Durée h/an</label>
-                  <input type="number" class="input" id="sst-ovr-duree--projete" step="100" min="0"
-                         placeholder="hérité Module 0" />
-                </div>
-                <div class="field">
-                  <label class="lbl" for="sst-ovr-hPointe--projete">H. pointe ECS (h/j)</label>
-                  <input type="number" class="input" id="sst-ovr-hPointe--projete" step="0.5" min="0"
-                         placeholder="hérité Module 0" />
-                </div>
-                <div class="field">
-                  <label class="lbl" for="sst-ovr-puEcs--projete">Puissance unitaire ECS (kW)</label>
-                  <input type="number" class="input" id="sst-ovr-puEcs--projete" step="0.1" min="0"
-                         placeholder="hérité Module 0" />
+              <div class="sst-surcharges-box">
+                <div class="subhead"><h4>Surcharges SST</h4><div class="line"></div></div>
+                <p class="field-hint mb-2">Laisser vide pour hériter des valeurs du tableau Module 0 (par type de bâtiment).</p>
+                <div class="field-row cols-3">
+                  <div class="field">
+                    <label class="lbl" for="sst-ovr-ratio--projete">Ratio W/m²</label>
+                    <input type="number" class="input" id="sst-ovr-ratio--projete" step="1" min="0"
+                           placeholder="hérité Module 0" />
+                  </div>
+                  <div class="field">
+                    <label class="lbl" for="sst-ovr-interm--projete">Intermittence</label>
+                    <input type="number" class="input" id="sst-ovr-interm--projete" step="0.05" min="0" max="1"
+                           placeholder="hérité Module 0" />
+                  </div>
+                  <div class="field">
+                    <label class="lbl" for="sst-ovr-duree--projete">Durée h/an</label>
+                    <input type="number" class="input" id="sst-ovr-duree--projete" step="100" min="0"
+                           placeholder="hérité Module 0" />
+                  </div>
+                  <div class="field">
+                    <label class="lbl" for="sst-ovr-hPointe--projete">H. pointe ECS (h/j)</label>
+                    <input type="number" class="input" id="sst-ovr-hPointe--projete" step="0.5" min="0"
+                           placeholder="hérité Module 0" />
+                  </div>
+                  <div class="field">
+                    <label class="lbl" for="sst-ovr-puEcs--projete">Puissance unitaire ECS (kW)</label>
+                    <input type="number" class="input" id="sst-ovr-puEcs--projete" step="0.1" min="0"
+                           placeholder="hérité Module 0" />
+                  </div>
                 </div>
               </div>
 
@@ -657,10 +660,9 @@
               </div>
             </div>
           </div>
-        </div>
       </div><!-- /sst-etats-card -->
 
-      <div class="subhead mt-3"><h4>Localisation</h4><div class="line"></div></div>
+      <div class="subhead lg"><h4>Localisation</h4><div class="line"></div></div>
       <div class="field-row cols-3">
         <div class="field full">
           <label class="lbl" for="sst-adresse">Adresse</label>
@@ -675,6 +677,8 @@
           <input type="text" class="input" id="sst-ville"
                  placeholder="ex : commune de la sous-station" />
         </div>
+      </div>
+      <div class="field-row cols-2">
         <div class="field">
           <label class="lbl opt" for="sst-latitude">Latitude</label>
           <input type="number" class="input" id="sst-latitude" step="0.000001"
@@ -687,7 +691,7 @@
         </div>
       </div>
 
-      <div class="subhead mt-3"><h4>Contact</h4><div class="line"></div></div>
+      <div class="subhead lg"><h4>Contact</h4><div class="line"></div></div>
       <div class="field-row cols-3">
         <div class="field">
           <label class="lbl" for="sst-contact">Nom contact</label>
@@ -703,7 +707,7 @@
         </div>
       </div>
 
-      <div class="subhead mt-3"><h4>Remarques</h4><div class="line"></div></div>
+      <div class="subhead lg"><h4>Remarques</h4><div class="line"></div></div>
       <div class="field-row cols-2">
         <div class="field full">
           <label class="lbl" for="sst-remarques">Équipements existants, observations…</label>
