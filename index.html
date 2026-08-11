@@ -81,7 +81,7 @@
 
 <!-- Module nav -->
 <nav class="module-nav">
-  <a href="#">
+  <a href="#" data-tab="hypotheses">
     <span class="step-num">M0</span>
     <span class="step-lbl">Hypothèses</span>
   </a>
@@ -89,7 +89,7 @@
     <span class="step-num">M1</span>
     <span class="step-lbl">Référentiel SST</span>
   </a>
-  <a href="#" class="active">
+  <a href="#" class="active" data-tab="m2">
     <span class="step-num">M2</span>
     <span class="step-lbl">Puissances</span>
   </a>
@@ -101,6 +101,246 @@
     <span class="meta">Affaire <b>2026-014</b> · MAJ <b>aujourd'hui 14:32</b></span>
   </div>
 </nav>
+
+<!-- ============================================================ -->
+<!-- Module 0 — Hypothèses générales                              -->
+<!-- ============================================================ -->
+<section id="tab-hypotheses" class="module-section">
+<div class="proj-page" style="max-width:1100px">
+
+  <div class="proj-page-head">
+    <div>
+      <div class="eyebrow">Module 0</div>
+      <h1 class="proj-page-title">Hypothèses générales du projet</h1>
+    </div>
+  </div>
+
+  <form id="hyp-form" onsubmit="return false">
+
+    <!-- Réseau de chaleur -->
+    <div class="card mb-3">
+      <div class="card-head"><h3>Réseau de chaleur</h3></div>
+      <div class="card-body">
+        <div class="subhead"><h4>Régime hiver</h4><div class="line"></div></div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <label class="lbl" for="hyp-rch-dep-hiver">T° départ primaire hiver (°C)</label>
+            <input type="number" class="input" id="hyp-rch-dep-hiver" placeholder="ex : 90" />
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-rch-ret-hiver">T° retour primaire hiver (°C)</label>
+            <input type="number" class="input" id="hyp-rch-ret-hiver" placeholder="ex : 70" />
+          </div>
+        </div>
+        <div class="subhead mt-2"><h4>Régime été</h4><div class="line"></div></div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <label class="lbl" for="hyp-rch-dep-ete">T° départ primaire été (°C)</label>
+            <input type="number" class="input" id="hyp-rch-dep-ete" placeholder="ex : 75" />
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-rch-ret-ete">T° retour primaire été (°C)</label>
+            <input type="number" class="input" id="hyp-rch-ret-ete" placeholder="ex : 60" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DJU -->
+    <div class="card mb-3">
+      <div class="card-head"><h3>DJU — Degrés-Jours Unifiés (base 18°C)</h3></div>
+      <div class="card-body">
+        <div class="field-row cols-3">
+          <div class="field">
+            <label class="lbl" for="hyp-station">Station météo de référence</label>
+            <input type="text" class="input" id="hyp-station" placeholder="ex : Paris-Orly" />
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-dju-ref">DJU de référence (°C.j)</label>
+            <input type="number" class="input" id="hyp-dju-ref" placeholder="ex : 2 500" min="0" />
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-dju-n1">DJU N-1 (°C.j)</label>
+            <input type="number" class="input" id="hyp-dju-n1" placeholder="°C.j" min="0" />
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-dju-n2">DJU N-2 (°C.j)</label>
+            <input type="number" class="input" id="hyp-dju-n2" placeholder="°C.j" min="0" />
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-dju-n3">DJU N-3 (°C.j)</label>
+            <input type="number" class="input" id="hyp-dju-n3" placeholder="°C.j" min="0" />
+          </div>
+          <div class="field">
+            <label class="lbl opt" for="hyp-dju-n4">DJU N-4</label>
+            <input type="number" class="input" id="hyp-dju-n4" placeholder="°C.j" min="0" />
+          </div>
+          <div class="field">
+            <label class="lbl opt" for="hyp-dju-n5">DJU N-5</label>
+            <input type="number" class="input" id="hyp-dju-n5" placeholder="°C.j" min="0" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hypothèses ECS -->
+    <div class="card mb-3" id="hyp-ecs-card">
+      <div class="card-head"><h3>Hypothèses ECS</h3></div>
+      <div class="card-body">
+        <div class="field-row cols-3">
+          <div class="field">
+            <label class="lbl" for="hyp-t-dep-ecs">T° départ ECS (°C) <span class="help-badge">ℹ</span></label>
+            <div class="help-content">Température de production de l'ECS au départ de l'échangeur secondaire. Minimum réglementaire 50°C en tout point de la boucle pour prévention légionellose (Arrêté du 30 novembre 2005 modifiant l'arrêté du 23 juin 1978). Valeur typique de production 55-65°C.</div>
+            <input type="number" class="input" id="hyp-t-dep-ecs" placeholder="défaut : 60"
+                   min="0" max="100" step="1" value="60" />
+            <small class="field-hint">T° de production ECS au départ de l'échangeur secondaire</small>
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-t-ret-ecs">T° retour secondaire ECS (°C) <span class="help-badge">ℹ</span></label>
+            <div class="help-content">Hypothèse de calcul pour le ΔT secondaire de l'échangeur ECS. En régime basse température RCU, reflète le mélange eau froide / retour bouclage (typiquement 35-40°C). NF EN 12831-3 §B : ϑ_draw = 40°C (T° de puisage), ϑ_c = 10°C (eau froide) — le retour secondaire se situe entre les deux selon la configuration.</div>
+            <input type="number" class="input" id="hyp-t-ret-ecs" placeholder="défaut : 38"
+                   min="0" max="100" step="1" value="38" />
+            <small class="field-hint">T° côté secondaire en sortie d'échangeur ECS</small>
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-dt-ecs-calc">ΔT ECS (calculé)</label>
+            <input type="number" class="input empty" id="hyp-dt-ecs-calc" readonly />
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-pincement-ecs">ΔT min primaire/secondaire — échangeur ECS (°C) <span class="help-badge">ℹ</span></label>
+            <div class="help-content">Écart minimum cible entre la température de retour primaire RCU et la température de retour secondaire ECS (boucle ECS ou eau froide selon configuration). Valeur typique 5 à 10°C. Sur l'ECS, des écarts plus faibles entraînent un surdimensionnement d'échangeur coûteux pour un gain marginal sur le retour primaire (la T° ECS étant élevée, la pénalisation du retour primaire est moindre que pour le CH). Cette valeur n'est PAS un pincement thermodynamique au sens strict mais une contrainte de dimensionnement orientée exploitation.</div>
+            <input type="number" class="input" id="hyp-pincement-ecs" placeholder="défaut : 10" min="0" step="0.5" value="10" />
+            <small class="field-hint">Écart minimum visé entre retour primaire RCU et retour secondaire ECS</small>
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-t-ret-bouclage-ecs">T° retour bouclage ECS (°C) <span class="help-badge">ℹ</span></label>
+            <div class="help-content">Température de retour de la boucle de recyclage ECS. Doit rester ≥ 50°C en tout point pour prévention légionellose (Arrêté du 30 novembre 2005). Utilisée pour le calcul du ΔT de l'étage de finition dans les montages deux étages.</div>
+            <input type="number" class="input" id="hyp-t-ret-bouclage-ecs" placeholder="défaut : 53"
+                   min="0" max="100" step="1" value="53" />
+            <small class="field-hint">T° de retour de la boucle de recyclage ECS</small>
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-t-puisage-ecs">T° de puisage ECS (°C) <span class="help-badge">ℹ</span></label>
+            <div class="help-content">NF EN 12831-3 §B — ϑ_draw : température de l'eau mélangée au point d'usage. Valeur conventionnelle française 40°C (Th-BCE 2020 §2.1.1). À ne pas confondre avec la T° de production ECS (départ échangeur, généralement 60°C).</div>
+            <input type="number" class="input" id="hyp-t-puisage-ecs" placeholder="défaut : 40"
+                   min="0" max="80" step="1" value="40" />
+            <small class="field-hint">T° de l'eau mélangée au robinet — utilisée pour le calcul du besoin ECS (ΔT = T_puisage − T_EF)</small>
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-t-eau-froide-ecs">Température eau froide (°C) <span class="help-badge">ℹ</span></label>
+            <div class="help-content">Température d'entrée de l'eau froide alimentant la production ECS. Hypothèse de calcul du besoin ECS (ΔT = T_départ − T_EF) — NF DTU 60.11 P1-1. Valeur par défaut 10°C cohérente avec ϑ_c de la NF EN 12831-3 §B.</div>
+            <input type="number" class="input" id="hyp-t-eau-froide-ecs" placeholder="défaut : 10"
+                   min="0" max="30" step="1" value="10" />
+            <small class="field-hint">T° du réseau eau froide alimentant la production ECS</small>
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-ecs-taux-bouclage">Majoration pertes bouclage ECS (%) <span class="help-badge">ℹ</span></label>
+            <div class="help-content">Majoration énergétique appliquée à la puissance ECS (Méthode 2) pour compenser les pertes thermiques de la boucle de recirculation ECS.<br><br><strong>Formule :</strong> P_utile = P_EF × (1 + Majoration / 100)<br><br><strong>Origine :</strong> AICVF Tome 3 (1991). Plage usuelle BE 15–25 %.<br><br><strong>Distinct de la « Part échangeur bouclage » (Module 2) :</strong> ce paramètre est une majoration énergétique globale, indépendante de la répartition charge/bouclage propre à la configuration ECS deux étages.</div>
+            <input type="number" class="input" id="hyp-ecs-taux-bouclage" placeholder="défaut : 20"
+                   min="0" max="50" step="5" value="20" />
+            <small class="field-hint">Majoration énergétique M2 — pertes thermiques boucle ECS</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hypothèses chauffage -->
+    <div class="card mb-3">
+      <div class="card-head"><h3>Hypothèses chauffage</h3></div>
+      <div class="card-body">
+        <div class="field-row cols-3">
+          <div class="field">
+            <label class="lbl" for="hyp-t-ext-base">T° extérieure de base T<sub>ext,base</sub> (°C) <span class="help-badge">ℹ</span></label>
+            <div class="help-content">T° extérieure de base — Température minimale conventionnelle utilisée pour le calcul des déperditions et le dimensionnement chauffage.<br><br><strong>Source :</strong> NF P52-612/CN tableau D.1a (par département) et D.1b (correction altitude).<br><br><strong>Valeurs typiques :</strong><br>• Paris (Île-de-France) : −7 °C (zone H1a)<br>• Lyon (Rhône) : −10 °C (zone H1c)<br>• Marseille (Bouches-du-Rhône) : −5 °C (zone H3)<br>• Strasbourg (Bas-Rhin) : −15 °C (zone H1b)<br>• Brest (Finistère) : −4 °C (zone H2a)<br><br>Correction altitude : −1 °C par 200 m au-dessus de 400 m (approximation D.1b).<br><br>Modifier selon la zone climatique du projet.</div>
+            <input type="number" class="input" id="hyp-t-ext-base" placeholder="défaut : −7" value="-7" />
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-t-coupure">T° de coupure chauffage (°C)</label>
+            <input type="number" class="input" id="hyp-t-coupure" placeholder="défaut : 18" value="18" />
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-pincement-ch">ΔT min primaire/secondaire — échangeur CH (°C) <span class="help-badge">ℹ</span></label>
+            <div class="help-content">Écart minimum cible entre la température de retour primaire RCU et la température de retour secondaire bâtiment, prescrit par le BE pour optimiser la chute du retour primaire (notamment en géothermie). Valeur typique pour réseau optimisé : 2 à 3°C. Valeur standard hors optimisation : 5°C. Cette valeur n'est PAS un pincement thermodynamique d'échangeur au sens strict (écart entre courbes de température primaire/secondaire interne à l'échangeur), mais une contrainte de dimensionnement orientée exploitation.</div>
+            <input type="number" class="input" id="hyp-pincement-ch" placeholder="défaut : 2" min="0" step="0.5" value="2" />
+            <small class="field-hint">Écart minimum visé entre retour primaire RCU et retour secondaire bâtiment</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hypothèses combustibles — M1 CH mode gaz / fioul -->
+    <div class="card mb-3" id="hyp-combustibles-card">
+      <div class="card-head"><h3>Paramètres combustibles — M1 CH</h3></div>
+      <div class="card-body">
+        <p class="label mb-2">
+          Utilisés pour convertir les consommations gaz ou fioul en chaleur utile
+          dans la méthode M1 CH. La valeur contractuelle figure sur la facture d'énergie.
+        </p>
+        <div class="field-row cols-2">
+          <div class="field">
+            <label class="lbl" for="hyp-pcs-gaz">PCS gaz naturel (kWh/m³) <span class="help-badge">ℹ</span></label>
+            <div class="help-content">PCS (Pouvoir Calorifique Supérieur) du gaz naturel — Énergie calorifique libérée par la combustion complète d'un m³ de gaz, en tenant compte de la condensation de l'eau formée.<br><br>Valeur contractuelle, indiquée sur la facture du fournisseur. Plage typique en France : 10,7 à 11,6 kWh/m³ selon l'approvisionnement (Mer du Nord, Algérie, GNL).<br><br><strong>Différence PCS / PCI :</strong> le PCS inclut la chaleur de condensation de la vapeur d'eau produite ; le PCI ne l'inclut pas. PCS ≈ PCI × 1,11 pour le gaz naturel.<br><br><strong>Source :</strong> valeurs contractuelles GRTgaz / fournisseur. Référence : Règlement (CE) N° 1099/2008.<br><br>Utilisé en M1 CH pour convertir une consommation annuelle de gaz (m³/an) en énergie consommée (kWh/an).</div>
+            <input type="number" class="input" id="hyp-pcs-gaz" placeholder="défaut : 11,2"
+                   min="9" max="13" step="0.01" />
+            <small class="field-hint">Pouvoir calorifique supérieur — valeur contractuelle (typique : 10,7 à 11,6 kWh/m³)</small>
+          </div>
+          <div class="field">
+            <label class="lbl" for="hyp-pci-fioul">PCI fioul domestique (kWh/L) <span class="help-badge">ℹ</span></label>
+            <div class="help-content">PCI (Pouvoir Calorifique Inférieur) du fioul domestique — Énergie calorifique libérée par la combustion complète d'un litre de fioul, sans tenir compte de la condensation de l'eau formée (pertes vapeur incluses).<br><br>Valeur normative pour le fioul domestique standard (FOD classe 1) selon NF EN 14213 : 10,0 kWh/L (≈ 11,86 kWh/kg pour densité 0,845 kg/L).<br><br><strong>Différence PCI / PCS :</strong> le PCI exclut la chaleur de condensation de la vapeur d'eau ; le PCS l'inclut. PCS ≈ PCI × 1,06 pour le fioul.<br><br><strong>Source :</strong> NF EN 14213 — Combustibles liquides pour chauffage domestique.<br><br>Utilisé en M1 CH pour convertir une consommation annuelle de fioul (L/an) en énergie consommée (kWh/an).</div>
+            <input type="number" class="input" id="hyp-pci-fioul" placeholder="défaut : 10"
+                   min="8" max="12" step="0.01" />
+            <small class="field-hint">Pouvoir calorifique inférieur fioul domestique standard</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hypothèses types d'émetteurs -->
+    <div class="card mb-3">
+      <div class="card-head"><h3>Hypothèses types d'émetteurs</h3></div>
+      <div class="card-body">
+        <p class="label mb-2">
+          T° départ et ΔT de référence par type — pré-remplis automatiquement dans les départs de chauffage (Module 2), modifiables localement.
+        </p>
+        <div id="hyp-emetteurs-table-container" class="table-wrapper">
+          <!-- Rendu par hypotheses.js -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Hypothèses par type de bâtiment -->
+    <div class="card mb-3">
+      <div class="card-head"><h3>Hypothèses par type de bâtiment</h3></div>
+      <div class="card-body">
+        <p class="label mb-2">
+          Valeurs de référence utilisées dans les calculs de puissance — modifiables selon le projet.
+        </p>
+        <div id="hyp-bat-table-container" class="table-wrapper">
+          <!-- Rendu par hypotheses.js -->
+        </div>
+        <p class="field-hint" style="margin-top:8px">
+          Valeurs ECS issues des besoins conventionnels Th-BCE 2012 (§17) pour le tertiaire et le logement collectif, et Th-BCE 2020 (§11.6.3.2) pour le logement RE2020.
+          Le ratio Sportif applique NF DTU 60.11 P1-1 §3.2.2 NOTE 1 (douches collectives, Ks = 1).
+          Valeurs chauffage issues des pratiques BE consolidées (héritées des règles Th-D historiques).
+          Détail du sourçage normatif disponible dans l'accordéon ℹ de chaque typologie. Toutes les valeurs sont modifiables.
+        </p>
+      </div>
+    </div>
+
+    <div class="hyp-save-bar" id="p0-save-bar">
+      <button type="button" class="btn brand" id="p0-btn-enregistrer">Enregistrer</button>
+      <button type="button" class="btn ghost" id="p0-btn-annuler">Annuler</button>
+    </div>
+
+  </form>
+
+</div>
+</section><!-- /tab-hypotheses -->
+
+<!-- ============================================================ -->
+<!-- Module 2 — Puissances (maquette existante, inchangée)        -->
+<!-- ============================================================ -->
+<section id="tab-m2" class="module-section active">
 
 <!-- ============================================================ -->
 <!-- Sticky : identification SST                                  -->
@@ -1072,12 +1312,15 @@ P = 229 × 500/7 × 1,163 × 45 / 3<br>
 <!-- Sticky bottom : bilan global — supprimé                      -->
 <!-- ============================================================ -->
 
+</section><!-- /tab-m2 -->
+
 </div>
 <!-- /#main-content -->
 
 <div id="toast"></div>
 
 <script src="js/validation.js"></script>
+<script src="js/hypotheses.js"></script>
 <script src="js/projects.js"></script>
 
 </body></html>

@@ -102,10 +102,17 @@ function openProject(id, { restoreModule = false } = {}) {
   const bddSect = document.getElementById('tab-bdd');
   if (bddSect) bddSect.classList.add('active');
 
+  // Pont temporaire tant que M1 n'est pas porté : à défaut de section active
+  // (tab-bdd n'existe pas encore), retomber sur M2.
+  if (!document.querySelector('.module-section.active')) {
+    document.querySelectorAll('.module-nav a[data-tab]').forEach(a => a.classList.toggle('active', a.dataset.tab === 'm2'));
+    document.getElementById('tab-m2')?.classList.add('active');
+  }
+
   if (typeof _chargerEtatAffichage === 'function') _chargerEtatAffichage();
   if (typeof _chargerTri === 'function') _chargerTri();
   window.tableauFiltres = {};
-  // M0/M1/M2 pas encore portés dans CALDA — no-op tant que ces fonctions n'existent pas.
+  // M1/M2 pas encore portés dans CALDA — no-op tant que ces fonctions n'existent pas.
   if (typeof rendreTableau === 'function') rendreTableau();
   if (typeof chargerHypothesesForm === 'function') chargerHypothesesForm();
   if (typeof refreshSSTSelect === 'function') refreshSSTSelect();
@@ -635,4 +642,22 @@ function initProjects() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', initProjects);
+// ── Bascule d'onglets entre modules (module-nav) ──────────────────────────
+// M1/M3 n'ont pas encore de section — leurs liens restent inertes.
+function initModuleNav() {
+  document.querySelectorAll('.module-nav a[data-tab]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelectorAll('.module-nav a[data-tab]').forEach(a => a.classList.toggle('active', a === link));
+      document.querySelectorAll('.module-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('tab-' + link.dataset.tab)?.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initHypotheses();
+  initModuleNav();
+  initProjects();
+});
