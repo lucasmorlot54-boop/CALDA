@@ -9,17 +9,70 @@
 <body>
 
 <!-- ============================================================ -->
+<!-- Page de garde — Gestion des projets                          -->
+<!-- ============================================================ -->
+<div id="page-projets">
+  <div class="proj-page">
+
+    <div class="proj-page-head">
+      <div>
+        <div class="eyebrow">CALDA</div>
+        <h1 class="proj-page-title">Vos projets</h1>
+      </div>
+      <div class="proj-page-actions">
+        <button class="btn" id="btn-toggle-view">Vue liste</button>
+        <button class="btn brand" id="btn-nouveau-projet">+ Nouveau projet</button>
+      </div>
+    </div>
+
+    <div class="card proj-form-card" id="form-nouveau-projet" style="display:none">
+      <div class="card-head"><h3>Nouveau projet</h3></div>
+      <div class="card-body">
+        <div class="field-row cols-2">
+          <div class="field">
+            <label class="lbl" for="proj-nom">Nom du projet *</label>
+            <input type="text" class="input" id="proj-nom" placeholder="ex : Quartier Centre, ZAC des Tilleuls" />
+          </div>
+          <div class="field">
+            <label class="lbl" for="proj-moa">Maître d'ouvrage (MOA)</label>
+            <input type="text" class="input" id="proj-moa" placeholder="ex : bailleur, collectivité, promoteur…" />
+          </div>
+          <div class="field">
+            <label class="lbl" for="proj-date">Date</label>
+            <input type="date" class="input" id="proj-date" />
+          </div>
+          <div class="field full">
+            <label class="lbl" for="proj-description">Description courte</label>
+            <input type="text" class="input" id="proj-description" placeholder="ex : Réhabilitation 315 logements / 13 bâtiments" />
+          </div>
+        </div>
+        <div class="proj-form-actions">
+          <button class="btn brand" id="btn-creer-projet">Créer le projet</button>
+          <button class="btn ghost" id="btn-annuler-projet">Annuler</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="projet-list-container"></div>
+
+  </div>
+</div>
+<!-- /#page-projets -->
+
+<div id="main-content" style="display:none">
+
+<!-- ============================================================ -->
 <!-- FLUX header (corail)                                         -->
 <!-- ============================================================ -->
 <header class="flux-header">
   <div class="crumbs">
-    <span class="brand-logo">FL<span class="dim">UX</span></span>
+    <span class="brand-logo" id="brand">FL<span class="dim">UX</span></span>
     <span class="sep">›</span>
-    <span class="proj">Nancy-Est · étude SST</span>
+    <span class="proj" id="topbar-project-name">Nancy-Est · étude SST</span>
   </div>
   <div class="title">Outil MOE · Sous-Stations RCU</div>
   <div class="actions">
-    <button class="h-btn">← Projets</button>
+    <button class="h-btn" id="btn-retour-projets">← Projets</button>
     <button class="h-btn">☽ Nuit</button>
     <button class="h-btn">↗ Charger</button>
     <button class="h-btn solid">↓ Sauvegarder</button>
@@ -1018,5 +1071,13 @@ P = 229 × 500/7 × 1,163 × 45 / 3<br>
 <!-- ============================================================ -->
 <!-- Sticky bottom : bilan global — supprimé                      -->
 <!-- ============================================================ -->
+
+</div>
+<!-- /#main-content -->
+
+<div id="toast"></div>
+
+<script src="js/validation.js"></script>
+<script src="js/projects.js"></script>
 
 </body></html>
