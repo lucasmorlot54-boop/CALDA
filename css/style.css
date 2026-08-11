@@ -2521,7 +2521,30 @@
   }
   .sst-table tbody tr.sst-row { cursor: pointer; }
   .sst-table tbody tr.sst-row:hover td { background: var(--panel-2); }
-  .sst-table tbody tr.sst-row-fallback { opacity: .7; }
+  /* SST sans donnée pour l'état affiché — doit se voir immédiatement.
+     Même recette que ".reused" en Module 2 (filter: saturate(0)) pour rester
+     cohérent avec le langage visuel "non applicable" déjà utilisé ailleurs. */
+  .sst-table tbody tr.sst-row-fallback td {
+    background: var(--panel-2);
+    filter: saturate(0);
+    opacity: .5;
+  }
+  .sst-table tbody tr.sst-row-fallback:hover td { background: var(--line-2); }
+  /* Séparateur entre SST valides et SST sans donnée, toujours reléguées en bas */
+  .sst-table tbody tr.sst-separator td {
+    padding: 0;
+    border-bottom: 0;
+  }
+  .sst-table tbody tr.sst-separator .sst-separator-line {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 10px;
+    border-top: 2px solid var(--ink-4);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
 
   /* Dropdown de filtre (singleton injecté en fin de body) */
   #filtre-dropdown {

@@ -822,10 +822,10 @@ function rendreTableau() {
     return;
   }
 
-  const filtrees  = filtrerSousStations(sousStations);
-  const affichees = trierSousStations(filtrees);
+  const filtrees = filtrerSousStations(sousStations);
+  const triees    = trierSousStations(filtrees);
 
-  if (affichees.length === 0) {
+  if (triees.length === 0) {
     tbody.innerHTML = `<tr><td colspan="12">
       <div class="empty-state">Aucun résultat pour ces filtres.</div>
     </td></tr>`;
@@ -834,9 +834,18 @@ function rendreTableau() {
     return;
   }
 
-  tbody.innerHTML = affichees.map(s => {
+  // SST sans donnée pour l'état affiché : toujours reléguées en bas de tableau,
+  // quel que soit le tri actif, séparées des SST valides par une ligne dédiée.
+  const etatChoisi = window.etatAffichage || 'projete';
+  const valides   = [];
+  const invalides = [];
+  triees.forEach(s => {
+    const ok = (etatChoisi === 'existant' && s.hasExistant) || (etatChoisi === 'projete' && s.hasProjete);
+    (ok ? valides : invalides).push(s);
+  });
+
+  const buildRow = s => {
     const i          = sousStations.indexOf(s);
-    const etatChoisi   = window.etatAffichage || 'projete';
     const etatExiste   = (etatChoisi === 'existant' && s.hasExistant) || (etatChoisi === 'projete' && s.hasProjete);
     const etatEffectif = etatExiste ? etatChoisi : (s.hasExistant ? 'existant' : 'projete');
     const b            = s[etatEffectif] || {};
@@ -873,8 +882,16 @@ function rendreTableau() {
         <button class="btn btn-danger btn-sm"  onclick="supprimerSST(${i})" style="margin-left:4px">✕</button>
       </td>
     </tr>`;
-  }).join('');
-  _majCompteur(affichees.length, sousStations.length);
+  };
+
+  const validesHtml   = valides.map(buildRow).join('');
+  const invalidesHtml = invalides.map(buildRow).join('');
+  const separateurHtml = (valides.length && invalides.length)
+    ? `<tr class="sst-separator"><td colspan="12"><div class="sst-separator-line">SST sans donnée pour l'état « ${etatChoisi === 'existant' ? 'Existant' : 'Projeté'} »</div></td></tr>`
+    : '';
+
+  tbody.innerHTML = validesHtml + separateurHtml + invalidesHtml;
+  _majCompteur(triees.length, sousStations.length);
   _majEntetesTableau();
 }
 
