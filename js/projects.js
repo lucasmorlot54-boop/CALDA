@@ -13,8 +13,25 @@ function getProjects() {
   catch { return []; }
 }
 
+// Sauvegarde localStorage critique : en cas d'échec (quota dépassé, stockage
+// désactivé…), l'utilisateur DOIT être averti immédiatement — une alerte
+// bloquante plutôt qu'un toast, pour ne jamais perdre de travail sans le savoir.
+function _alerterEchecSauvegarde(contexte) {
+  console.error('[CALDA] Échec de sauvegarde localStorage —', contexte);
+  window.alert(
+    'Échec de la sauvegarde (' + contexte + ').\n\n' +
+    "Les dernières modifications n'ont pas été enregistrées — probablement un " +
+    "espace de stockage du navigateur plein. Exportez votre projet en JSON dès " +
+    'que possible (page d\'accueil) pour ne rien perdre.'
+  );
+}
+
 function saveProjects(list) {
-  localStorage.setItem('flux_projects', JSON.stringify(list));
+  try {
+    localStorage.setItem('flux_projects', JSON.stringify(list));
+  } catch (e) {
+    _alerterEchecSauvegarde('liste des projets');
+  }
 }
 
 function getCurrentProjectId() {
@@ -44,7 +61,9 @@ function saveCurrentProjectData() {
       hypotheses:   window.hypotheses  || {},
       carteReseau:  window.carteReseau || {},
     }));
-  } catch {}
+  } catch (e) {
+    _alerterEchecSauvegarde('données du projet');
+  }
 }
 
 function deleteProjectData(id) {
