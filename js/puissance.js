@@ -11,6 +11,9 @@
 // n'est pas encore portée depuis FLUX — ce fichier en sera la base une fois
 // ce portage fait.
 
+// Référence de la SST actuellement ouverte en M2 (null si aucune)
+let p2SstRef = null;
+
 function initPuissanceMaquette() {
   // ── Bascule d'onglets CH / ECS / Projeté ──────────────────────────────
   const tabs   = document.querySelectorAll('.tab');
@@ -32,6 +35,7 @@ function initPuissanceMaquette() {
         panels.forEach(p => p.setAttribute('data-active', p.getAttribute('data-tab') === target ? 'true' : 'false'));
         document.body.setAttribute('data-state', 'existant');
       }
+      if (typeof renderBandeIdentite === 'function') renderBandeIdentite();
       window.scrollTo({ top: 0, behavior: 'instant' });
     });
   });
@@ -80,5 +84,108 @@ function initPuissanceMaquette() {
     hypHead.addEventListener('click', () => {
       hypBar.classList.toggle('collapsed');
     });
+  }
+
+  // ── Bandeau d'identification SST : sélecteur + rendu ───────────────────
+  const sstSelect = document.getElementById('p2-sst-select');
+  if (sstSelect) sstSelect.addEventListener('change', onSSTChange);
+  document.getElementById('p2-btn-modifier-sst')?.addEventListener('click', ouvrirEditionSSTDepuisM2);
+  refreshSSTSelect();
+  afficherEtatVide();
+}
+
+// Bouton "Modifier" du bandeau SST — renvoie au formulaire d'édition Module 1
+function ouvrirEditionSSTDepuisM2() {
+  if (!p2SstRef) return;
+  const index = (window.sousStations || []).findIndex(s => s.ref === p2SstRef);
+  if (index === -1) return;
+  if (typeof allerOnglet === 'function') allerOnglet('bdd');
+  if (typeof ouvrirFormulaireEdition === 'function') ouvrirFormulaireEdition(index);
+}
+
+// ── Bandeau d'identification SST (id-bar) ───────────────────────────────
+
+// Remplit le <select> de choix de SST depuis window.sousStations
+function refreshSSTSelect() {
+  const sel = document.getElementById('p2-sst-select');
+  if (!sel) return;
+  const liste = window.sousStations || [];
+  sel.innerHTML = '<option value="">— Choisir une sous-station —</option>'
+    + liste.map(s => `<option value="${esc(s.ref)}">${esc(s.ref)}</option>`).join('');
+  sel.value = p2SstRef || '';
+}
+
+// Changement de SST depuis le <select> du bandeau
+function onSSTChange() {
+  const sel = document.getElementById('p2-sst-select');
+  const ref = sel?.value || '';
+  if (ref) {
+    chargerDonneeSST(ref);
+    if (window.currentProjectId) localStorage.setItem('flux_p2SstRef_' + window.currentProjectId, ref);
+  } else {
+    afficherEtatVide();
+    if (window.currentProjectId) localStorage.removeItem('flux_p2SstRef_' + window.currentProjectId);
+  }
+}
+
+// Ouvre une SST donnée dans le bandeau M2 (appelé aussi depuis bdd.js)
+function chargerDonneeSST(ref) {
+  const sst = (window.sousStations || []).find(s => s.ref === ref);
+  if (!sst) { afficherEtatVide(); return; }
+  p2SstRef = ref;
+  const sel = document.getElementById('p2-sst-select');
+  if (sel) sel.value = ref;
+  renderBandeIdentite();
+}
+
+// Bandeau vide (aucune SST chargée, ou SST supprimée pendant qu'elle était ouverte)
+function afficherEtatVide() {
+  p2SstRef = null;
+  const sel  = document.getElementById('p2-sst-select');
+  const tag  = document.getElementById('p2-sst-tag');
+  const l1   = document.getElementById('p2-sst-addr-line1');
+  const l2   = document.getElementById('p2-sst-addr-line2');
+  const tags = document.getElementById('p2-sst-tags');
+  if (sel)  sel.value = '';
+  if (tag)  tag.textContent  = '—';
+  if (l1)   l1.textContent   = 'Aucune sous-station sélectionnée';
+  if (l2)   l2.textContent   = 'Choisissez une SST dans la liste';
+  if (tags) tags.innerHTML   = '';
+}
+
+// Rend le bandeau d'identification (référence, adresse, pastilles) pour p2SstRef,
+// selon l'état actif (Existant/Projeté, piloté par les onglets CH/ECS/Projeté)
+function renderBandeIdentite() {
+  const sst = (window.sousStations || []).find(s => s.ref === p2SstRef);
+  if (!sst) { afficherEtatVide(); return; }
+
+  const etatChoisi   = document.body.getAttribute('data-state') || 'existant';
+  const etatEffectif = (etatChoisi === 'existant' && sst.hasExistant) ? 'existant'
+                      : (etatChoisi === 'projete' && sst.hasProjete)  ? 'projete'
+                      : (sst.hasExistant ? 'existant' : 'projete');
+  const b = sst[etatEffectif] || {};
+
+  const tag = document.getElementById('p2-sst-tag');
+  if (tag) tag.textContent = sst.ref;
+
+  const cpVille = [sst.cp, sst.ville].filter(Boolean).join(' ');
+  const l1 = document.getElementById('p2-sst-addr-line1');
+  if (l1) l1.textContent = [sst.adresse, cpVille].filter(Boolean).join(', ') || 'Adresse non renseignée';
+
+  const sousLigne = [
+    b.typeBatiment || null,
+    b.nbLogements ? `${b.nbLogements} logements` : (b.sref != null ? `${b.sref.toLocaleString('fr-FR')} m²` : null),
+  ].filter(Boolean).join(' · ');
+  const l2 = document.getElementById('p2-sst-addr-line2');
+  if (l2) l2.textContent = sousLigne || '—';
+
+  const tags = document.getElementById('p2-sst-tags');
+  if (tags) {
+    tags.innerHTML = [
+      b.typeSST         ? badgeTypeSst(b.typeSST)          : '',
+      b.typeService     ? badgeType(b.typeService)         : '',
+      sst.nature        ? badgeNature(sst.nature)          : '',
+      b.energieActuelle ? badgeEnergie(b.energieActuelle)  : '',
+    ].join('');
   }
 }

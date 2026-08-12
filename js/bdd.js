@@ -1020,26 +1020,25 @@ function majOverridePlaceholders(etat) {
     ['sst-ovr-puEcs',   bat.puEcs, v => Number(v).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })],
   ].forEach(([base, val, fmt]) => {
     const el = document.getElementById(base + sfx);
-    if (!el) return;
+    const hint = document.getElementById(base + '-hint' + sfx);
     const display = (val !== null && val !== undefined) ? (fmt ? fmt(val) : val) : null;
-    el.placeholder = display !== null ? `hérité : ${display}` : 'hérité Module 0';
+    if (el) el.placeholder = display !== null ? `hérité : ${display}` : 'hérité Module 0';
+    if (hint) hint.textContent = typeBat ? (display !== null ? `Hérité Module 0 : ${display}` : 'Aucune valeur Module 0 pour ce type') : '';
   });
 
-  // sst-ovr-puecs-unit et sst-ovr-m0-info n'existent que dans le bloc Existant
+  // sst-ovr-puecs-unit n'existe que dans le bloc Existant
   if (etat === 'existant') {
     const unitEl = document.getElementById('sst-ovr-puecs-unit');
     if (unitEl) unitEl.textContent = bat.unitEcs || 'kW/logt';
+  }
 
-    const strip = document.getElementById('sst-ovr-m0-info');
-    if (strip) {
-      if (!typeBat) { strip.style.display = 'none'; return; }
-      const fmt = v => (v !== null && v !== undefined) ? v : '—';
-      strip.innerHTML = `<strong>Module 0 :</strong> `
-        + `${fmt(bat.ratio)} W/m² &nbsp;·&nbsp; `
-        + `${fmt(bat.interm)} intermittence &nbsp;·&nbsp; `
-        + `${fmt(bat.duree)} h/an`;
-      strip.style.display = '';
-    }
+  // Besoin ECS Module 0 — valeur de référence en lecture seule (non surchargeable)
+  const besoinEl = document.getElementById('sst-ovr-besoin' + sfx);
+  if (besoinEl) {
+    besoinEl.value = (typeBat && bat.besoin !== null && bat.besoin !== undefined)
+      ? `${bat.besoin} ${bat.unitBesoin}`
+      : '';
+    besoinEl.placeholder = typeBat ? 'Aucune valeur Module 0 pour ce type' : '—';
   }
 }
 

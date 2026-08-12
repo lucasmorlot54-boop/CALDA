@@ -63,7 +63,46 @@ function saveCurrentProjectData() {
     }));
   } catch (e) {
     _alerterEchecSauvegarde('données du projet');
+    return;
   }
+  _majDateModifProjet(id);
+}
+
+// Met à jour la date de dernière modification du projet (métadonnées, liste flux_projects)
+function _majDateModifProjet(id) {
+  const projects = getProjects();
+  const proj = projects.find(p => p.id === id);
+  if (!proj) return;
+  proj.dateModif = new Date().toISOString();
+  saveProjects(projects);
+  renderNavTail();
+}
+
+// Formate une date ISO en "aujourd'hui HH:MM" / "hier HH:MM" / "JJ/MM/AAAA HH:MM"
+function _fmtDateModif(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  const now = new Date();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  if (d.toDateString() === now.toDateString()) return `aujourd'hui ${hh}:${mm}`;
+  const hier = new Date(now);
+  hier.setDate(now.getDate() - 1);
+  if (d.toDateString() === hier.toDateString()) return `hier ${hh}:${mm}`;
+  const jj = String(d.getDate()).padStart(2, '0');
+  const moisNum = String(d.getMonth() + 1).padStart(2, '0');
+  return `${jj}/${moisNum}/${d.getFullYear()} ${hh}:${mm}`;
+}
+
+// Affiche le n° d'affaire et la date de dernière modification dans la nav de modules
+function renderNavTail() {
+  const id = window.currentProjectId;
+  const proj = id ? getProjects().find(p => p.id === id) : null;
+  const affaireEl = document.getElementById('nav-tail-affaire');
+  const majEl = document.getElementById('nav-tail-maj');
+  if (affaireEl) affaireEl.textContent = (proj && proj.numeroAffaire) || '—';
+  if (majEl) majEl.textContent = _fmtDateModif(proj && (proj.dateModif || proj.dateCreation));
 }
 
 function deleteProjectData(id) {
@@ -137,6 +176,7 @@ function openProject(id, { restoreModule = false } = {}) {
   document.getElementById('main-content').style.display = '';
 
   document.getElementById('topbar-project-name').textContent = proj.nom;
+  renderNavTail();
 
   // Activer l'onglet Module 1 par défaut
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -706,6 +746,7 @@ function creerProjet() {
     proj.moa = moa;
     proj.description = description;
     proj.dateCreation = dateCreation;
+    proj.dateModif = new Date().toISOString();
     if (_formImageDataUrl !== undefined) {
       if (_formImageDataUrl === null) delete proj.image;
       else proj.image = _formImageDataUrl;
@@ -718,13 +759,14 @@ function creerProjet() {
     }
     hideNewProjectForm();
     renderProjectList();
+    if (window.currentProjectId === _editingProjectId) renderNavTail();
     afficherToast(`Projet "${nom}" modifié.`);
     return;
   }
 
   // ── Création d'un nouveau projet ─────────────────────────────────────
   const id = generateProjectId();
-  const proj = { id, nom, numeroAffaire, moa, description, dateCreation };
+  const proj = { id, nom, numeroAffaire, moa, description, dateCreation, dateModif: new Date().toISOString() };
   if (_formImageDataUrl) proj.image = _formImageDataUrl;
 
   projects.push(proj);
@@ -879,4 +921,25 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof initModule4 === 'function') initModule4();
   initModuleNav();
   initProjects();
+  initTheme();
 });
+
+// ── Thème clair / sombre ─────────────────────────────────────────────────
+function _majBoutonTheme(theme) {
+  const btn = document.getElementById('btn-toggle-theme');
+  if (!btn) return;
+  btn.textContent = theme === 'dark' ? '☀ Jour' : '☽ Nuit';
+}
+
+function initTheme() {
+  const theme = localStorage.getItem('flux_theme') === 'dark' ? 'dark' : 'light';
+  _majBoutonTheme(theme);
+  document.getElementById('btn-toggle-theme')?.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    const next = current === 'dark' ? 'light' : 'dark';
+    if (next === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    else document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('flux_theme', next);
+    _majBoutonTheme(next);
+  });
+}

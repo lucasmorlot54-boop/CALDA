@@ -398,6 +398,19 @@ function _p0ConfirmLeaveDirty() {
 }
 window._p0ConfirmLeaveDirty = _p0ConfirmLeaveDirty;
 
+function _p0UpdateDjuAddBtn() {
+  const btn = document.getElementById('hyp-dju-add');
+  if (!btn) return;
+  const n4Hidden = document.getElementById('hyp-dju-n4-field')?.hidden;
+  const n5Hidden = document.getElementById('hyp-dju-n5-field')?.hidden;
+  if (!n4Hidden && !n5Hidden) {
+    btn.hidden = true;
+  } else {
+    btn.hidden = false;
+    btn.textContent = n4Hidden ? '+ Ajouter une année (N-4)' : '+ Ajouter une année (N-5)';
+  }
+}
+
 function initHypotheses() {
   chargerHypothesesForm();
   document.getElementById('hyp-form').addEventListener('input', e => {
@@ -430,6 +443,15 @@ function initHypotheses() {
     if (!window.confirm('Réinitialiser les hypothèses par type de bâtiment aux valeurs par défaut ?')) return;
     document.querySelectorAll('.hyp-bat-input').forEach(el => { el.value = ''; });
     updateHypBatCalcCells();
+    _p0RecomputeDirty();
+  });
+
+  document.getElementById('hyp-dju-add')?.addEventListener('click', () => {
+    const n4Field = document.getElementById('hyp-dju-n4-field');
+    const n5Field = document.getElementById('hyp-dju-n5-field');
+    if (n4Field?.hidden) n4Field.hidden = false;
+    else if (n5Field?.hidden) n5Field.hidden = false;
+    _p0UpdateDjuAddBtn();
     _p0RecomputeDirty();
   });
 
@@ -490,22 +512,23 @@ function calculerPuEcsDerivee(def, stored, h) {
   return (besoin * nadeq * 4.186 * dT) / (7 * hPointe * 3600);
 }
 
+// Unité du besoin ECS conventionnel (L/semaine) en fonction de l'unité de puissance ECS
+const UNIT_BESOIN = {
+  'kW/logt':    'L/sem/adulte_éq',
+  'kW/m²':      'L/sem/m²',
+  'kW/lit':     'L/sem/lit',
+  'kW/chambre': 'L/sem/chambre',
+  'kW/douche':  'L/sem/douche',
+  'kW/repas/j': 'L/sem/repas',
+  'kW/unité':   'L/sem/unité',
+};
+
 // ── Table hypothèses par type de bâtiment ─────────────────────────────────
 function renderHypBatTable() {
   const container = document.getElementById('hyp-bat-table-container');
   if (!container) return;
   const hb = (window.hypotheses || {}).hypBatiments || {};
   const h  = window.hypotheses || {};
-
-  const UNIT_BESOIN = {
-    'kW/logt':    'L/sem/adulte_éq',
-    'kW/m²':      'L/sem/m²',
-    'kW/lit':     'L/sem/lit',
-    'kW/chambre': 'L/sem/chambre',
-    'kW/douche':  'L/sem/douche',
-    'kW/repas/j': 'L/sem/repas',
-    'kW/unité':   'L/sem/unité',
-  };
 
   const fmtPuEcs = (val) => {
     if (val == null) return '—';
@@ -584,13 +607,16 @@ function getHypoBatiment(typeBatiment) {
   const def = HYP_BAT_TYPES.find(t => t.key === key);
   if (!def) return null;
   const stored = ((window.hypotheses || {}).hypBatiments || {})[key] || {};
+  const ovr = v => (v !== undefined && v !== null);
   return {
-    ratio:   stored.ratio   !== undefined ? stored.ratio   : def.dRatio,
-    interm:  stored.interm  !== undefined ? stored.interm  : def.dInterm,
-    duree:   stored.duree   !== undefined ? stored.duree   : def.dDuree,
-    hPointe: stored.hPointe !== undefined ? stored.hPointe : def.dHPointe,
+    ratio:   ovr(stored.ratio)   ? stored.ratio   : def.dRatio,
+    interm:  ovr(stored.interm)  ? stored.interm  : def.dInterm,
+    duree:   ovr(stored.duree)   ? stored.duree   : def.dDuree,
+    hPointe: ovr(stored.hPointe) ? stored.hPointe : def.dHPointe,
+    besoin:  ovr(stored.besoin)  ? stored.besoin  : def.dBesoin,
     puEcs:   calculerPuEcsDerivee(def, stored, window.hypotheses || {}),
     unitEcs: def.dUnitEcs,
+    unitBesoin: UNIT_BESOIN[def.dUnitEcs] || '—',
   };
 }
 
@@ -608,6 +634,11 @@ function chargerHypothesesForm() {
   sv('hyp-dju-ref',       h.djuRef);
   sv('hyp-dju-n1', h.djuN1); sv('hyp-dju-n2', h.djuN2); sv('hyp-dju-n3', h.djuN3);
   sv('hyp-dju-n4', h.djuN4); sv('hyp-dju-n5', h.djuN5);
+  const n4Field = document.getElementById('hyp-dju-n4-field');
+  const n5Field = document.getElementById('hyp-dju-n5-field');
+  if (n4Field) n4Field.hidden = h.djuN4 === null || h.djuN4 === undefined;
+  if (n5Field) n5Field.hidden = h.djuN5 === null || h.djuN5 === undefined;
+  _p0UpdateDjuAddBtn();
   sv('hyp-t-ext-base',    h.tExtBase,     -7);
   sv('hyp-t-coupure',     h.tCoupure,     18);
   sv('hyp-pincement-ch',  h.pincementCh, 2);

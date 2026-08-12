@@ -6,6 +6,12 @@
 <title>FLUX — Module 2 · Estimation &amp; dimensionnement · SST-001</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script>
+  // Applique le thème mémorisé avant le premier rendu (évite le flash clair→sombre)
+  if (localStorage.getItem('flux_theme') === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+</script>
 </head>
 <body>
 
@@ -116,7 +122,7 @@
     <span class="app-header-project" id="topbar-project-name">Nancy-Est · étude SST</span>
   </div>
   <div class="app-header-actions">
-    <button class="h-btn">☽ Nuit</button>
+    <button class="h-btn" id="btn-toggle-theme" type="button">☽ Nuit</button>
   </div>
 </header>
 
@@ -139,7 +145,7 @@
     <span class="step-lbl">Carte</span>
   </a>
   <div class="nav-tail">
-    <span class="meta">Affaire <b>2026-014</b> · MAJ <b>aujourd'hui 14:32</b></span>
+    <span class="meta">Affaire <b id="nav-tail-affaire">—</b> · MAJ <b id="nav-tail-maj">—</b></span>
   </div>
 </nav>
 
@@ -217,7 +223,7 @@
               <input type="number" class="input" id="hyp-dju-ref" placeholder="ex : 2 500" min="0" />
             </div>
           </div>
-          <div class="subhead mt-2"><h4>Historique 5 dernières années</h4><div class="line"></div></div>
+          <div class="subhead mt-2"><h4>Historique</h4><div class="line"></div></div>
           <div class="field-row cols-1">
             <div class="field">
               <label class="lbl" for="hyp-dju-n1">DJU N-1 (°C.j)</label>
@@ -231,15 +237,16 @@
               <label class="lbl" for="hyp-dju-n3">DJU N-3 (°C.j)</label>
               <input type="number" class="input" id="hyp-dju-n3" placeholder="°C.j" min="0" />
             </div>
-            <div class="field">
+            <div class="field" id="hyp-dju-n4-field" hidden>
               <label class="lbl opt" for="hyp-dju-n4">DJU N-4</label>
               <input type="number" class="input" id="hyp-dju-n4" placeholder="°C.j" min="0" />
             </div>
-            <div class="field">
+            <div class="field" id="hyp-dju-n5-field" hidden>
               <label class="lbl opt" for="hyp-dju-n5">DJU N-5</label>
               <input type="number" class="input" id="hyp-dju-n5" placeholder="°C.j" min="0" />
             </div>
           </div>
+          <button type="button" class="btn ghost sm mt-2" id="hyp-dju-add">+ Ajouter une année (N-4)</button>
         </div>
       </div>
 
@@ -300,7 +307,7 @@
         </div>
 
         <div class="subhead mt-2"><h4>Bouclage</h4><div class="line"></div></div>
-        <div class="field-row cols-2">
+        <div class="field-row cols-3">
           <div class="field">
             <label class="lbl" for="hyp-t-ret-bouclage-ecs">T° retour bouclage ECS (°C) <span class="help-badge">ℹ</span></label>
             <div class="help-content">Température de retour de la boucle de recyclage ECS. Doit rester ≥ 50°C en tout point pour prévention légionellose (Arrêté du 30 novembre 2005). Utilisée pour le calcul du ΔT de l'étage de finition dans les montages deux étages.</div>
@@ -548,32 +555,40 @@
               <div class="sst-surcharges-box">
                 <div class="subhead"><h4>Surcharges SST</h4><div class="line"></div></div>
                 <p class="field-hint mb-2">Laisser vide pour hériter des valeurs du tableau Module 0 (par type de bâtiment).</p>
-                <div id="sst-ovr-m0-info" class="m0-info-strip" style="display:none"></div>
                 <div class="field-row cols-3">
                   <div class="field">
                     <label class="lbl" for="sst-ovr-ratio--existant">Ratio W/m²</label>
                     <input type="number" class="input" id="sst-ovr-ratio--existant" step="1" min="0"
                            placeholder="hérité Module 0" />
+                    <small class="field-hint" id="sst-ovr-ratio-hint--existant"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-interm--existant">Intermittence</label>
                     <input type="number" class="input" id="sst-ovr-interm--existant" step="0.05" min="0" max="1"
                            placeholder="hérité Module 0" />
+                    <small class="field-hint" id="sst-ovr-interm-hint--existant"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-duree--existant">Durée h/an</label>
                     <input type="number" class="input" id="sst-ovr-duree--existant" step="100" min="0"
                            placeholder="hérité Module 0" />
+                    <small class="field-hint" id="sst-ovr-duree-hint--existant"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-hPointe--existant">H. pointe ECS (h/j)</label>
                     <input type="number" class="input" id="sst-ovr-hPointe--existant" step="0.5" min="0"
                            placeholder="hérité Module 0" />
+                    <small class="field-hint" id="sst-ovr-hPointe-hint--existant"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-puEcs--existant">Puissance unitaire ECS (<span id="sst-ovr-puecs-unit">kW/logt</span>)</label>
                     <input type="number" class="input" id="sst-ovr-puEcs--existant" step="0.1" min="0"
                            placeholder="hérité Module 0" />
+                    <small class="field-hint" id="sst-ovr-puEcs-hint--existant"></small>
+                  </div>
+                  <div class="field">
+                    <label class="lbl" for="sst-ovr-besoin--existant">Besoin ECS Module 0</label>
+                    <input type="text" class="input empty" id="sst-ovr-besoin--existant" readonly />
                   </div>
                 </div>
               </div>
@@ -664,26 +679,35 @@
                     <label class="lbl" for="sst-ovr-ratio--projete">Ratio W/m²</label>
                     <input type="number" class="input" id="sst-ovr-ratio--projete" step="1" min="0"
                            placeholder="hérité Module 0" />
+                    <small class="field-hint" id="sst-ovr-ratio-hint--projete"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-interm--projete">Intermittence</label>
                     <input type="number" class="input" id="sst-ovr-interm--projete" step="0.05" min="0" max="1"
                            placeholder="hérité Module 0" />
+                    <small class="field-hint" id="sst-ovr-interm-hint--projete"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-duree--projete">Durée h/an</label>
                     <input type="number" class="input" id="sst-ovr-duree--projete" step="100" min="0"
                            placeholder="hérité Module 0" />
+                    <small class="field-hint" id="sst-ovr-duree-hint--projete"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-hPointe--projete">H. pointe ECS (h/j)</label>
                     <input type="number" class="input" id="sst-ovr-hPointe--projete" step="0.5" min="0"
                            placeholder="hérité Module 0" />
+                    <small class="field-hint" id="sst-ovr-hPointe-hint--projete"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-puEcs--projete">Puissance unitaire ECS (kW)</label>
                     <input type="number" class="input" id="sst-ovr-puEcs--projete" step="0.1" min="0"
                            placeholder="hérité Module 0" />
+                    <small class="field-hint" id="sst-ovr-puEcs-hint--projete"></small>
+                  </div>
+                  <div class="field">
+                    <label class="lbl" for="sst-ovr-besoin--projete">Besoin ECS Module 0</label>
+                    <input type="text" class="input empty" id="sst-ovr-besoin--projete" readonly />
                   </div>
                 </div>
               </div>
@@ -713,7 +737,7 @@
                  placeholder="ex : commune de la sous-station" />
         </div>
       </div>
-      <div class="field-row cols-2">
+      <div class="field-row cols-3">
         <div class="field">
           <label class="lbl opt" for="sst-latitude">Latitude</label>
           <input type="number" class="input" id="sst-latitude" step="0.000001"
@@ -814,25 +838,30 @@
 <!-- ============================================================ -->
 <section id="tab-puissance" class="module-section active">
 
+<div class="p2-page-head-wrap">
+  <div class="proj-page-head">
+    <div>
+      <div class="eyebrow">Module 2</div>
+      <h1 class="proj-page-title">Estimation &amp; dimensionnement des puissances</h1>
+    </div>
+  </div>
+</div>
+
 <!-- ============================================================ -->
 <!-- Sticky : identification SST                                  -->
 <!-- ============================================================ -->
 <div class="id-bar">
   <div class="id-block">
-    <span class="sst-tag">SST-001</span>
+    <span class="sst-tag" id="p2-sst-tag">—</span>
     <div class="addr">
-      <div>22 rue Chopin, 54600 Nancy</div>
-      <div class="sub">Logement collectif · 105 logements</div>
+      <div id="p2-sst-addr-line1">Aucune sous-station sélectionnée</div>
+      <div class="sub" id="p2-sst-addr-line2">Choisissez une SST dans la liste</div>
     </div>
   </div>
-  <div class="tags" style="gap:8px;">
-    <span class="pill coral">Primaire</span>
-    <span class="pill green">CH+ECS</span>
-    <span class="pill purple">Raccordement</span>
-    <span class="pill yellow">Gaz</span>
-  </div>
-  <div style="display:flex; gap:8px;">
-    <button class="btn">Modifier</button>
+  <div class="tags" id="p2-sst-tags" style="gap:8px;"></div>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <select class="input p2-sst-select" id="p2-sst-select"></select>
+    <button class="btn" type="button" id="p2-btn-modifier-sst">Modifier</button>
   </div>
 </div>
 
