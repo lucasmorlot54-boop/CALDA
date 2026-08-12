@@ -30,7 +30,95 @@ window.hypotheses = {
   // Combustibles — utilisés dans M1 CH mode gaz / fioul
   pcsGaz:   11.2, // kWh/m³ — PCS gaz naturel (valeur contractuelle typique)
   pciFioul: 10,   // kWh/L  — PCI fioul domestique standard
+  // Table des DN — débits hydrauliques de référence (Module 2, départs CH)
+  tableDN: null,
 };
+
+// ── Table des DN — débits hydrauliques (m³/h) à J=10, J=15, J=20 mm/m ─────
+// et vitesse max (m/s). Source : abaque fabricant acier/inox RCU.
+const REF_DN_DEFAULTS = [
+  { dn: 'DN 000', di: 0,      j10: 0,       j15: 0,       j20: 0,       vmax: 0 },
+  { dn: 'DN 015', di: 16.7,   j10: 0.23,    j15: 0.28,    j20: 0.33,    vmax: 0.578 },
+  { dn: 'DN 020', di: 22.3,   j10: 0.49,    j15: 0.60,    j20: 0.70,    vmax: 0.668 },
+  { dn: 'DN 025', di: 29.7,   j10: 1.04,    j15: 1.29,    j20: 1.50,    vmax: 0.771 },
+  { dn: 'DN 032', di: 36.6,   j10: 1.81,    j15: 2.24,    j20: 2.61,    vmax: 0.856 },
+  { dn: 'DN 040', di: 42.5,   j10: 2.69,    j15: 3.33,    j20: 3.87,    vmax: 0.922 },
+  { dn: 'DN 050', di: 53.9,   j10: 5.05,    j15: 6.25,    j20: 7.28,    vmax: 1.038 },
+  { dn: 'DN 065', di: 64.2,   j10: 8.03,    j15: 9.94,    j20: 11.57,   vmax: 1.133 },
+  { dn: 'DN 080', di: 82.5,   j10: 15.62,   j15: 19.34,   j20: 22.50,   vmax: 1.285 },
+  { dn: 'DN 100', di: 107.1,  j10: 31.22,   j15: 38.65,   j20: 44.97,   vmax: 1.464 },
+  { dn: 'DN 125', di: 131.7,  j10: 54.03,   j15: 66.88,   j20: 77.82,   vmax: 1.623 },
+  { dn: 'DN 150', di: 159.3,  j10: 89.50,   j15: 110.79,  j20: 128.90,  vmax: 1.785 },
+  { dn: 'DN 200', di: 207.3,  j10: 179.99,  j15: 222.81,  j20: 259.23,  vmax: 2.036 },
+  { dn: 'DN 250', di: 260.4,  j10: 329.59,  j15: 407.99,  j20: 474.69,  vmax: 2.282 },
+  { dn: 'DN 300', di: 304.86, j10: 500.69,  j15: 619.79,  j20: 721.11,  vmax: 2.469 },
+  { dn: 'DN 350', di: 336.56, j10: 650.92,  j15: 805.77,  j20: 937.49,  vmax: 2.594 },
+  { dn: 'DN 400', di: 387.36, j10: 945.10,  j15: 1169.93, j20: 1361.18, vmax: 2.783 },
+  { dn: 'DN 450', di: 438.16, j10: 1310.52, j15: 1622.27, j20: 1887.47, vmax: 2.960 },
+  { dn: 'DN 500', di: 488.96, j10: 1753.14, j15: 2170.18, j20: 2524.95, vmax: 3.127 },
+  { dn: 'DN 600', di: 590.56, j10: 2892.72, j15: 3580.85, j20: 4166.23, vmax: 3.437 },
+];
+
+// Cellules à afficher en rouge — débits déconseillés (vitesse excessive)
+const VALEURS_ROUGE = [
+  // J=20 à partir de DN 150 — vitesse > 1.8 m/s
+  { dn: 'DN 150', col: 'j20' },
+  { dn: 'DN 200', col: 'j20' },
+  { dn: 'DN 250', col: 'j20' },
+  { dn: 'DN 300', col: 'j20' },
+  { dn: 'DN 350', col: 'j20' },
+  { dn: 'DN 400', col: 'j20' },
+  { dn: 'DN 450', col: 'j20' },
+  { dn: 'DN 500', col: 'j20' },
+  { dn: 'DN 600', col: 'j20' },
+  // J=15 à partir de DN 450 — vitesse > 3 m/s
+  { dn: 'DN 450', col: 'j15' },
+  { dn: 'DN 500', col: 'j15' },
+  { dn: 'DN 600', col: 'j15' },
+];
+
+// ── Table des DN — accesseurs (scopés par projet, dans window.hypotheses) ──
+// Reprise de la logique FLUX (js/referentiels.js) — persistance par projet
+// au lieu de la clé localStorage globale flux_referentiel_dn.
+function loadTableDN() {
+  const stored = (window.hypotheses || {}).tableDN;
+  return stored && stored.length ? stored : JSON.parse(JSON.stringify(REF_DN_DEFAULTS));
+}
+
+function saveTableDN(data) {
+  if (window.hypotheses) window.hypotheses.tableDN = data;
+}
+
+function renderTableDN() {
+  const data = loadTableDN();
+  const tbody = document.querySelector('#hyp-dn-table tbody');
+  if (!tbody) return;
+
+  const isRouge = (dn, col) => VALEURS_ROUGE.some(v => v.dn === dn && v.col === col);
+  const inputStyle = (dn, col) => isRouge(dn, col)
+    ? ' style="color:var(--danger);font-weight:600"'
+    : '';
+  const attr = val => val != null ? ` value="${val}"` : '';
+
+  tbody.innerHTML = data.map((row, i) => `<tr data-dn="${row.dn}">
+    <td class="hyp-bat-type-label">${row.dn}</td>
+    <td><input type="number" class="hyp-dn-input" data-row="${i}" data-col="di"   min="0" step="0.01"${attr(row.di)}   /></td>
+    <td><input type="number" class="hyp-dn-input" data-row="${i}" data-col="j10"  min="0" step="0.01"${attr(row.j10)}  placeholder="—" /></td>
+    <td><input type="number" class="hyp-dn-input" data-row="${i}" data-col="j15"  min="0" step="0.01"${attr(row.j15)}  placeholder="—"${inputStyle(row.dn, 'j15')} /></td>
+    <td><input type="number" class="hyp-dn-input" data-row="${i}" data-col="j20"  min="0" step="0.01"${attr(row.j20)}  placeholder="—"${inputStyle(row.dn, 'j20')} /></td>
+    <td><input type="number" class="hyp-dn-input" data-row="${i}" data-col="vmax" min="0" step="0.001"${attr(row.vmax)} /></td>
+  </tr>`).join('');
+}
+
+function collectTableDN() {
+  const rows = [];
+  document.querySelectorAll('#hyp-dn-table tbody tr').forEach(tr => {
+    const dn = tr.dataset.dn ?? '';
+    const g  = col => { const v = parseFloat(tr.querySelector(`[data-col="${col}"]`)?.value); return isNaN(v) ? null : v; };
+    rows.push({ dn, di: g('di'), j10: g('j10'), j15: g('j15'), j20: g('j20'), vmax: g('vmax') });
+  });
+  return rows;
+}
 
 // ── Référentiel des types de bâtiment avec valeurs par défaut ─────────────
 // dBesoin : besoin unitaire ECS en L/sem/unité (source normative Th-BCE)
@@ -332,6 +420,34 @@ function initHypotheses() {
     if (typeof afficherToast === 'function') afficherToast('Hypothèses enregistrées.');
   });
 
+  document.getElementById('hyp-em-reset')?.addEventListener('click', () => {
+    if (!window.confirm('Réinitialiser les hypothèses types d\'émetteurs aux valeurs par défaut ?')) return;
+    document.querySelectorAll('.hyp-em-input').forEach(el => { el.value = ''; });
+    _p0RecomputeDirty();
+  });
+
+  document.getElementById('hyp-bat-reset')?.addEventListener('click', () => {
+    if (!window.confirm('Réinitialiser les hypothèses par type de bâtiment aux valeurs par défaut ?')) return;
+    document.querySelectorAll('.hyp-bat-input').forEach(el => { el.value = ''; });
+    updateHypBatCalcCells();
+    _p0RecomputeDirty();
+  });
+
+  document.getElementById('hyp-dn-reset')?.addEventListener('click', () => {
+    if (!window.confirm('Réinitialiser la table des DN aux valeurs par défaut ?')) return;
+    const tbody = document.querySelector('#hyp-dn-table tbody');
+    if (tbody) {
+      const data = JSON.parse(JSON.stringify(REF_DN_DEFAULTS));
+      tbody.querySelectorAll('tr').forEach((tr, i) => {
+        ['di', 'j10', 'j15', 'j20', 'vmax'].forEach(col => {
+          const input = tr.querySelector(`[data-col="${col}"]`);
+          if (input) input.value = data[i][col];
+        });
+      });
+    }
+    _p0RecomputeDirty();
+  });
+
   document.getElementById('p0-btn-annuler')?.addEventListener('click', () => {
     if (!_p0FormDirty) return;
     if (!window.confirm('Annuler les modifications M0 ?')) return;
@@ -514,6 +630,7 @@ function chargerHypothesesForm() {
   updateHypEcsVisibility();
   renderHypBatTable();
   renderHypEmetteursTable();
+  renderTableDN();
   _p0TakeSnapshot();
   _p0ResetDirty();
 }
@@ -552,6 +669,7 @@ function _p0BuildDataObject() {
     emetteurs:        lireHypEmetteurs(),
     pcsGaz:           g('hyp-pcs-gaz')   ?? 11.2,
     pciFioul:         g('hyp-pci-fioul') ?? 10,
+    tableDN:          collectTableDN(),
   };
 }
 

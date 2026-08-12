@@ -1424,6 +1424,11 @@
   .field-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
   .field-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
   .field-row.cols-5 { grid-template-columns: repeat(5, 1fr); }
+  .field-row.cols-1 { grid-template-columns: 1fr; }
+
+  /* Rangée de cartes côte à côte (ex. Module 0 : Chauffage / DJU / Combustibles) */
+  .card-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items: start; }
+  .card-row > .card { margin-bottom: 0; }
 
   .subhead {
     display: flex; align-items: baseline; gap: 8px;
@@ -2408,6 +2413,8 @@
     outline: none;
     border-color: var(--ink-4);
   }
+  /* Table des DN : valeurs plus longues (ex. 4166.23) — cellules plus larges */
+  #hyp-dn-table input { width: 76px; }
   .hyp-bat-table .hyp-bat-type-label .help-badge { margin-left: 6px; }
   .hyp-bat-table .hyp-bat-type-label .help-content { margin-top: 8px; width: min(480px, 60vw); }
 
