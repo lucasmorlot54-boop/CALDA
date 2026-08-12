@@ -25,6 +25,10 @@
        type bouton primaire / badge / toast, où --ink sert de fond sombre et
        non de couleur de texte. Voir bouton "Nuit". */
     --ink-solid: #1b1f23;
+    /* Idem pour --pill-gray-ink, utilisé en fond plein par le bouton "Existant"
+       (toggle Module 1) et la pastille Fioul — doit rester "noir charbon"
+       dans les deux thèmes plutôt que de s'inverser comme une couleur de texte. */
+    --pill-gray-ink-solid: #3a3d47;
 
     /* Bordures des badges pastel (teinte plus saturée que le fond --pill-*) */
     --pill-green-border:  #6a9d6a;
@@ -35,6 +39,7 @@
     --pill-gray-border:   #9498a0;
     --pill-coral-border:  #c08379;
     --pill-teal-border:   #6aa691;
+    --pill-indigo-border: #7d89d6;
     --hot-border:         #f1c7a8;
     --cold-border:        #b7c5ee;
     --hot-border-strong:  #d99d80;
@@ -73,6 +78,7 @@
     --pill-gray:     #d0d3da;  --pill-gray-ink:    #3a3d47;
     --pill-coral:    #ecc5c0;  --pill-coral-ink:   #8c3a30;
     --pill-teal:     #bee0d4;  --pill-teal-ink:    #14593e;
+    --pill-indigo:   #c7d0f5;  --pill-indigo-ink:  #38408f;
 
     /* Sémantique */
     --warn:      #92400e;
@@ -91,6 +97,9 @@
   /* --ink-solid n'est jamais redéfini ici : il sert de fond plein fixe
      (bouton primaire, badge, toast) qui doit rester sombre dans les deux thèmes. */
   html[data-theme="dark"] {
+    /* Indique au navigateur d'adapter ses propres composants (liste déroulante
+       des <select>, scrollbars, etc.) au thème sombre, au-delà de nos variables. */
+    color-scheme: dark;
     /* Neutres */
     --bg:        #16181c;
     --panel:     #1e2126;
@@ -111,6 +120,7 @@
     --pill-gray-border:   #6b6f78;
     --pill-coral-border:  #b06b60;
     --pill-teal-border:   #4f8a76;
+    --pill-indigo-border: #6069b0;
     --hot-border:         #a85a44;
     --cold-border:        #3f5a8a;
     --hot-border-strong:  #c47355;
@@ -149,6 +159,7 @@
     --pill-gray:     #2c2f36;  --pill-gray-ink:    #b8bcc4;
     --pill-coral:    #3a2422;  --pill-coral-ink:   #e8a89e;
     --pill-teal:     #183028;  --pill-teal-ink:    #82d0b0;
+    --pill-indigo:   #232a52;  --pill-indigo-ink:  #a8b2f0;
 
     /* Sémantique */
     --warn:      #e8a855;
@@ -389,6 +400,10 @@
     width: 120px;
     padding: 0 8px;
     font-size: 12px;
+    background: var(--panel);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
   }
   .tag {
     display: inline-flex;
@@ -479,6 +494,7 @@
 
   .src-pill {
     display: inline-flex; align-items: center; gap: 4px;
+    font-family: inherit;
     font-size: 11px;
     padding: 4px 10px;
     border: 1px solid var(--line);
@@ -499,6 +515,37 @@
     color: var(--ink-3);
     font-style: italic;
     margin-top: 2px;
+  }
+
+  /* Pastilles Énergie actuelle cliquables (Module 2, Données chauffage) —
+     mêmes classes tag-energie-* que le badge du bandeau SST ; l'énergie non
+     sélectionnée passe en gris pour ne garder en couleur que le choix actif. */
+  .p2-energie-btn {
+    cursor: pointer;
+    font-family: inherit;
+    border-width: 1px;
+    border-style: solid;
+    transition: background-color .15s ease, color .15s ease, border-color .15s ease, opacity .15s ease;
+  }
+  .p2-energie-btn.inactive {
+    background: var(--panel-2) !important;
+    color: var(--ink-4) !important;
+    border-color: var(--line) !important;
+  }
+
+  /* Unité mise en valeur à l'intérieur du champ (consommations historiques) */
+  .input-group { position: relative; display: flex; align-items: center; }
+  .input-group .input { padding-right: 76px; }
+  .input-group-unit {
+    position: absolute; right: 6px;
+    font-size: 11.5px; font-weight: 700;
+    color: var(--ink);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    padding: 3px 9px;
+    border-radius: 999px;
+    pointer-events: none;
+    white-space: nowrap;
   }
 
   textarea.input {
@@ -556,7 +603,7 @@
   .hyp-bar.collapsed .hyp-body { display: none; }
   .hyp-body {
     display: grid;
-    grid-template-columns: 1fr 1fr 2fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 0;
     padding: 14px 24px 16px 24px;
   }
@@ -2404,6 +2451,26 @@
     line-height: 1.4;
   }
 
+  /* Historique DJU (M0) — liste libre année / valeur */
+  .dju-historique { display: flex; flex-direction: column; gap: 6px; }
+  .dju-historique-head {
+    display: grid; grid-template-columns: 100px 1fr 28px; gap: 8px;
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--ink-3);
+    padding: 0 2px;
+  }
+  .dju-historique-row {
+    display: grid; grid-template-columns: 100px 1fr 28px; gap: 8px; align-items: center;
+  }
+  .dju-historique-row .input { height: 32px; }
+  .dju-historique-row .dju-remove {
+    height: 28px; width: 28px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-3);
+  }
+  .dju-historique-row .dju-remove:hover { color: var(--danger-ink); border-color: var(--danger); }
+  .dju-historique-empty { color: var(--ink-4); font-size: 12px; padding: 6px 2px; }
+
   /* Barre d'enregistrement transactionnelle (M0) */
   .hyp-save-bar {
     position: sticky;
@@ -2547,9 +2614,9 @@
     z-index: 1;
   }
   .p2-mode-btn[data-etat="existant"].active {
-    background: var(--pill-gray-ink);
+    background: var(--pill-gray-ink-solid);
     color: #fff;
-    border-color: var(--pill-gray-ink);
+    border-color: var(--pill-gray-ink-solid);
     box-shadow: 0 0 0 3px rgba(58,61,71,.18);
   }
   .p2-mode-btn[data-etat="projete"].active {
@@ -2584,9 +2651,9 @@
   .form-actions-etat { margin-top: 14px; }
 
   /* Badges tableau SST (générés par bdd.js — classes tag-*) */
-  .tag.tag-ch      { color: var(--hot-ink);  border-color: var(--hot-border); background: var(--hot-soft); }
+  .tag.tag-ch      { color: var(--hot-ink);  border-color: var(--hot-border-strong); background: var(--hot-soft); }
   .tag.tag-ecs     { color: var(--cold-ink); border-color: var(--cold-border); background: var(--cold-soft); }
-  .tag.tag-both    { color: var(--accent-ink); border-color: var(--ink-4); background: var(--accent-soft); }
+  .tag.tag-both    { color: var(--pill-indigo-ink); border-color: var(--pill-indigo-border); background: var(--pill-indigo); }
   .tag.tag-primaire   { color: var(--pill-blue-ink); border-color: var(--pill-blue-border); background: var(--pill-blue); }
   .tag.tag-secondaire { color: var(--pill-gray-ink); border-color: var(--pill-gray-border); background: var(--pill-gray); }
   .tag.tag-neuf         { color: var(--pill-green-ink);  border-color: var(--pill-green-border); background: var(--pill-green); }
@@ -2597,9 +2664,9 @@
   .tag.tag-en-cours  { color: var(--pill-yellow-ink); border-color: var(--pill-yellow-border); background: var(--pill-yellow); }
   .tag.tag-valide    { color: var(--pill-green-ink);  border-color: var(--pill-green-border); background: var(--pill-green); }
   .tag.tag-termine   { color: var(--pill-teal-ink);   border-color: var(--pill-teal-border); background: var(--pill-teal); }
-  .tag.tag-energie-rcu   { color: var(--hot-ink); border-color: var(--hot-border); background: var(--hot-soft); }
-  .tag.tag-energie-gaz   { color: var(--pill-orange-ink); border-color: var(--pill-orange-border); background: var(--pill-orange); }
-  .tag.tag-energie-fioul { color: var(--pill-coral-ink);  border-color: var(--pill-coral-border); background: var(--pill-coral); }
+  .tag.tag-energie-rcu   { color: var(--pill-teal-ink); border-color: var(--pill-teal-border); background: var(--pill-teal); }
+  .tag.tag-energie-gaz   { color: var(--pill-yellow-ink); border-color: var(--pill-yellow-border); background: var(--pill-yellow); }
+  .tag.tag-energie-fioul { color: #fff; border-color: var(--pill-gray-ink-solid); background: var(--pill-gray-ink-solid); }
 
   .badge-placeholder { color: var(--ink-4); cursor: help; }
 

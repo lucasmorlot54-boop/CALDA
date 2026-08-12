@@ -1022,8 +1022,8 @@ function majOverridePlaceholders(etat) {
     const el = document.getElementById(base + sfx);
     const hint = document.getElementById(base + '-hint' + sfx);
     const display = (val !== null && val !== undefined) ? (fmt ? fmt(val) : val) : null;
-    if (el) el.placeholder = display !== null ? `hérité : ${display}` : 'hérité Module 0';
-    if (hint) hint.textContent = typeBat ? (display !== null ? `Hérité Module 0 : ${display}` : 'Aucune valeur Module 0 pour ce type') : '';
+    if (el) el.placeholder = display !== null ? `hérité : ${display}` : 'hérité Module 1';
+    if (hint) hint.textContent = typeBat ? (display !== null ? `Hérité Module 1 : ${display}` : 'Aucune valeur Module 1 pour ce type') : '';
   });
 
   // sst-ovr-puecs-unit n'existe que dans le bloc Existant
@@ -1032,13 +1032,15 @@ function majOverridePlaceholders(etat) {
     if (unitEl) unitEl.textContent = bat.unitEcs || 'kW/logt';
   }
 
-  // Besoin ECS Module 0 — valeur de référence en lecture seule (non surchargeable)
+  // Besoin ECS Module 1 — valeur de référence en lecture seule (non surchargeable).
+  // Le nombre est configuré dans le tableau Module 0 mais attribué à Module 1 :
+  // il découle du type de bâtiment, choisi dans le formulaire SST.
   const besoinEl = document.getElementById('sst-ovr-besoin' + sfx);
   if (besoinEl) {
     besoinEl.value = (typeBat && bat.besoin !== null && bat.besoin !== undefined)
       ? `${bat.besoin} ${bat.unitBesoin}`
       : '';
-    besoinEl.placeholder = typeBat ? 'Aucune valeur Module 0 pour ce type' : '—';
+    besoinEl.placeholder = typeBat ? 'Aucune valeur Module 1 pour ce type' : '—';
   }
 }
 

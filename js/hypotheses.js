@@ -12,7 +12,8 @@ window.hypotheses = {
   rchDepEte:   null, rchRetEte:   null,
   // DJU
   stationMeteo: '', djuRef: null,
-  djuN1: null, djuN2: null, djuN3: null, djuN4: null, djuN5: null,
+  // Historique DJU par année calendaire — [{ annee, dju }], ordre libre
+  djuHistorique: [],
   // Hypothèses chauffage
   tExtBase: -7, tCoupure: 18,
   pincementCh: 2,
@@ -398,17 +399,38 @@ function _p0ConfirmLeaveDirty() {
 }
 window._p0ConfirmLeaveDirty = _p0ConfirmLeaveDirty;
 
-function _p0UpdateDjuAddBtn() {
-  const btn = document.getElementById('hyp-dju-add');
-  if (!btn) return;
-  const n4Hidden = document.getElementById('hyp-dju-n4-field')?.hidden;
-  const n5Hidden = document.getElementById('hyp-dju-n5-field')?.hidden;
-  if (!n4Hidden && !n5Hidden) {
-    btn.hidden = true;
-  } else {
-    btn.hidden = false;
-    btn.textContent = n4Hidden ? '+ Ajouter une année (N-4)' : '+ Ajouter une année (N-5)';
+// ── Historique DJU — liste libre année / valeur ────────────────────────────
+function _djuHistoriqueRowHtml(annee, dju) {
+  return `<div class="dju-historique-row">
+    <input type="number" class="input dju-annee" placeholder="ex : 2024" value="${annee ?? ''}" />
+    <input type="number" class="input dju-valeur" placeholder="°C.j" min="0" value="${dju ?? ''}" />
+    <button type="button" class="btn ghost sm dju-remove" title="Retirer cette année">✕</button>
+  </div>`;
+}
+
+function renderDjuHistorique() {
+  const container = document.getElementById('hyp-dju-historique');
+  if (!container) return;
+  const liste = (window.hypotheses || {}).djuHistorique || [];
+  if (!liste.length) {
+    container.innerHTML = '<p class="dju-historique-empty">Aucune année enregistrée pour l\'instant.</p>';
+    return;
   }
+  container.innerHTML = `
+    <div class="dju-historique-head"><span>Année</span><span>DJU (°C.j)</span><span></span></div>
+  ` + liste.map(r => _djuHistoriqueRowHtml(r.annee, r.dju)).join('');
+}
+
+// Lit les lignes actuellement affichées dans le formulaire (pas window.hypotheses,
+// qui n'est mis à jour qu'à l'enregistrement — cohérent avec le reste du formulaire M0)
+function _lireDjuHistorique() {
+  const g = v => { const n = parseFloat(v); return isNaN(n) ? null : n; };
+  return Array.from(document.querySelectorAll('#hyp-dju-historique .dju-historique-row'))
+    .map(row => ({
+      annee: g(row.querySelector('.dju-annee')?.value),
+      dju:   g(row.querySelector('.dju-valeur')?.value),
+    }))
+    .filter(r => r.annee !== null || r.dju !== null);
 }
 
 function initHypotheses() {
@@ -422,9 +444,9 @@ function initHypotheses() {
 
   document.getElementById('p0-btn-enregistrer')?.addEventListener('click', () => {
     sauvegarderHypotheses();
-    // Cascade M0 → M2 : écrasement silencieux des modifs dirty M2 si présentes
+    // Cascade M0 → M2 : la bande Climat/Régimes ne dépend pas d'une SST sélectionnée
+    if (typeof renderBandeHypotheses === 'function') renderBandeHypotheses();
     if (typeof p2SstRef !== 'undefined' && p2SstRef) {
-      if (typeof renderBandeHypotheses === 'function') renderBandeHypotheses();
       if (typeof calculerResultats === 'function') calculerResultats();
     }
     if (typeof window._p2ResetDirty === 'function') window._p2ResetDirty();
@@ -447,11 +469,23 @@ function initHypotheses() {
   });
 
   document.getElementById('hyp-dju-add')?.addEventListener('click', () => {
-    const n4Field = document.getElementById('hyp-dju-n4-field');
-    const n5Field = document.getElementById('hyp-dju-n5-field');
-    if (n4Field?.hidden) n4Field.hidden = false;
-    else if (n5Field?.hidden) n5Field.hidden = false;
-    _p0UpdateDjuAddBtn();
+    const container = document.getElementById('hyp-dju-historique');
+    if (!container) return;
+    if (!container.querySelector('.dju-historique-row')) {
+      container.innerHTML = '<div class="dju-historique-head"><span>Année</span><span>DJU (°C.j)</span><span></span></div>';
+    }
+    container.insertAdjacentHTML('beforeend', _djuHistoriqueRowHtml(null, null));
+    container.querySelector('.dju-historique-row:last-child .dju-annee')?.focus();
+    _p0RecomputeDirty();
+  });
+
+  document.getElementById('hyp-dju-historique')?.addEventListener('click', e => {
+    const btn = e.target.closest('.dju-remove');
+    if (!btn) return;
+    btn.closest('.dju-historique-row')?.remove();
+    if (!document.querySelector('#hyp-dju-historique .dju-historique-row')) {
+      renderDjuHistorique();
+    }
     _p0RecomputeDirty();
   });
 
@@ -632,13 +666,7 @@ function chargerHypothesesForm() {
   sv('hyp-rch-dep-ete',   h.rchDepEte);
   sv('hyp-station',       h.stationMeteo);
   sv('hyp-dju-ref',       h.djuRef);
-  sv('hyp-dju-n1', h.djuN1); sv('hyp-dju-n2', h.djuN2); sv('hyp-dju-n3', h.djuN3);
-  sv('hyp-dju-n4', h.djuN4); sv('hyp-dju-n5', h.djuN5);
-  const n4Field = document.getElementById('hyp-dju-n4-field');
-  const n5Field = document.getElementById('hyp-dju-n5-field');
-  if (n4Field) n4Field.hidden = h.djuN4 === null || h.djuN4 === undefined;
-  if (n5Field) n5Field.hidden = h.djuN5 === null || h.djuN5 === undefined;
-  _p0UpdateDjuAddBtn();
+  renderDjuHistorique();
   sv('hyp-t-ext-base',    h.tExtBase,     -7);
   sv('hyp-t-coupure',     h.tCoupure,     18);
   sv('hyp-pincement-ch',  h.pincementCh, 2);
@@ -684,8 +712,7 @@ function _p0BuildDataObject() {
     rchDepEte:        g('hyp-rch-dep-ete'),   rchRetEte:   hPrev.rchRetEte   ?? null,
     stationMeteo:     s('hyp-station'),
     djuRef:           g('hyp-dju-ref'),
-    djuN1: g('hyp-dju-n1'), djuN2: g('hyp-dju-n2'), djuN3: g('hyp-dju-n3'),
-    djuN4: g('hyp-dju-n4'), djuN5: g('hyp-dju-n5'),
+    djuHistorique:    _lireDjuHistorique(),
     tExtBase:         g('hyp-t-ext-base')    ?? -7,
     tCoupure:         g('hyp-t-coupure')     ?? 18,
     pincementCh:      g('hyp-pincement-ch')  ??  2,

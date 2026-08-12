@@ -193,6 +193,7 @@ function openProject(id, { restoreModule = false } = {}) {
   if (typeof rendreTableau === 'function') rendreTableau();
   if (typeof chargerHypothesesForm === 'function') chargerHypothesesForm();
   if (typeof refreshSSTSelect === 'function') refreshSSTSelect();
+  if (typeof renderBandeHypotheses === 'function') renderBandeHypotheses();
 
   // Restaurer la SST sélectionnée en M2 (clé scopée par projet)
   const savedSstRef = localStorage.getItem('flux_p2SstRef_' + id);
@@ -272,6 +273,19 @@ function _migrateProjectData() {
   if (hyp.tRetRecyclageEcs !== undefined && hyp.tRetBouclageEcs === undefined) {
     hyp.tRetBouclageEcs = hyp.tRetRecyclageEcs;
     delete hyp.tRetRecyclageEcs;
+    migrated = true;
+  }
+
+  // ── Migration DJU — djuN1..N5 (relatif) → djuHistorique (années réelles) ─
+  // Les anciennes clés n'ayant pas d'année associée, on estime l'année à
+  // partir de la date de migration (N-1 = année dernière, etc.) — l'utilisateur
+  // pourra corriger les années dans le formulaire si besoin.
+  if (!Array.isArray(hyp.djuHistorique) && [1, 2, 3, 4, 5].some(n => hyp['djuN' + n] !== undefined)) {
+    const anneeRef = new Date().getFullYear();
+    hyp.djuHistorique = [1, 2, 3, 4, 5]
+      .filter(n => hyp['djuN' + n] !== null && hyp['djuN' + n] !== undefined)
+      .map(n => ({ annee: anneeRef - n, dju: hyp['djuN' + n] }));
+    [1, 2, 3, 4, 5].forEach(n => delete hyp['djuN' + n]);
     migrated = true;
   }
 
@@ -908,6 +922,7 @@ function initModuleNav() {
       if (link.dataset.tab === 'puissance') {
         if (typeof refreshSSTSelect === 'function') refreshSSTSelect();
         if (typeof p2SstRef !== 'undefined' && p2SstRef && typeof chargerDonneeSST === 'function') chargerDonneeSST(p2SstRef);
+        else if (typeof renderBandeHypotheses === 'function') renderBandeHypotheses();
       }
       window.scrollTo({ top: 0, behavior: 'instant' });
     });

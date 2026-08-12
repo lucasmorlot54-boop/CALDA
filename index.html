@@ -170,11 +170,11 @@
       <div class="card-body">
         <div class="field-row cols-2">
           <div class="field">
-            <label class="lbl" for="hyp-rch-dep-hiver">T° arrivée primaire hiver (°C)</label>
+            <label class="lbl" for="hyp-rch-dep-hiver">T° départ centrale hiver (°C)</label>
             <input type="number" class="input" id="hyp-rch-dep-hiver" placeholder="ex : 90" />
           </div>
           <div class="field">
-            <label class="lbl" for="hyp-rch-dep-ete">T° arrivée primaire été (°C)</label>
+            <label class="lbl" for="hyp-rch-dep-ete">T° départ centrale été (°C)</label>
             <input type="number" class="input" id="hyp-rch-dep-ete" placeholder="ex : 75" />
           </div>
         </div>
@@ -224,29 +224,9 @@
             </div>
           </div>
           <div class="subhead mt-2"><h4>Historique</h4><div class="line"></div></div>
-          <div class="field-row cols-1">
-            <div class="field">
-              <label class="lbl" for="hyp-dju-n1">DJU N-1 (°C.j)</label>
-              <input type="number" class="input" id="hyp-dju-n1" placeholder="°C.j" min="0" />
-            </div>
-            <div class="field">
-              <label class="lbl" for="hyp-dju-n2">DJU N-2 (°C.j)</label>
-              <input type="number" class="input" id="hyp-dju-n2" placeholder="°C.j" min="0" />
-            </div>
-            <div class="field">
-              <label class="lbl" for="hyp-dju-n3">DJU N-3 (°C.j)</label>
-              <input type="number" class="input" id="hyp-dju-n3" placeholder="°C.j" min="0" />
-            </div>
-            <div class="field" id="hyp-dju-n4-field" hidden>
-              <label class="lbl opt" for="hyp-dju-n4">DJU N-4</label>
-              <input type="number" class="input" id="hyp-dju-n4" placeholder="°C.j" min="0" />
-            </div>
-            <div class="field" id="hyp-dju-n5-field" hidden>
-              <label class="lbl opt" for="hyp-dju-n5">DJU N-5</label>
-              <input type="number" class="input" id="hyp-dju-n5" placeholder="°C.j" min="0" />
-            </div>
-          </div>
-          <button type="button" class="btn ghost sm mt-2" id="hyp-dju-add">+ Ajouter une année (N-4)</button>
+          <p class="field-hint mb-2">Une ligne par année de relevé — ajoutez ou retirez librement des années au fil du temps.</p>
+          <div id="hyp-dju-historique" class="dju-historique"></div>
+          <button type="button" class="btn ghost sm mt-2" id="hyp-dju-add">+ Ajouter une année</button>
         </div>
       </div>
 
@@ -559,35 +539,35 @@
                   <div class="field">
                     <label class="lbl" for="sst-ovr-ratio--existant">Ratio W/m²</label>
                     <input type="number" class="input" id="sst-ovr-ratio--existant" step="1" min="0"
-                           placeholder="hérité Module 0" />
+                           placeholder="hérité Module 1" />
                     <small class="field-hint" id="sst-ovr-ratio-hint--existant"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-interm--existant">Intermittence</label>
                     <input type="number" class="input" id="sst-ovr-interm--existant" step="0.05" min="0" max="1"
-                           placeholder="hérité Module 0" />
+                           placeholder="hérité Module 1" />
                     <small class="field-hint" id="sst-ovr-interm-hint--existant"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-duree--existant">Durée h/an</label>
                     <input type="number" class="input" id="sst-ovr-duree--existant" step="100" min="0"
-                           placeholder="hérité Module 0" />
+                           placeholder="hérité Module 1" />
                     <small class="field-hint" id="sst-ovr-duree-hint--existant"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-hPointe--existant">H. pointe ECS (h/j)</label>
                     <input type="number" class="input" id="sst-ovr-hPointe--existant" step="0.5" min="0"
-                           placeholder="hérité Module 0" />
+                           placeholder="hérité Module 1" />
                     <small class="field-hint" id="sst-ovr-hPointe-hint--existant"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-puEcs--existant">Puissance unitaire ECS (<span id="sst-ovr-puecs-unit">kW/logt</span>)</label>
                     <input type="number" class="input" id="sst-ovr-puEcs--existant" step="0.1" min="0"
-                           placeholder="hérité Module 0" />
+                           placeholder="hérité Module 1" />
                     <small class="field-hint" id="sst-ovr-puEcs-hint--existant"></small>
                   </div>
                   <div class="field">
-                    <label class="lbl" for="sst-ovr-besoin--existant">Besoin ECS Module 0</label>
+                    <label class="lbl" for="sst-ovr-besoin--existant">Besoin ECS Module 1</label>
                     <input type="text" class="input empty" id="sst-ovr-besoin--existant" readonly />
                   </div>
                 </div>
@@ -678,35 +658,35 @@
                   <div class="field">
                     <label class="lbl" for="sst-ovr-ratio--projete">Ratio W/m²</label>
                     <input type="number" class="input" id="sst-ovr-ratio--projete" step="1" min="0"
-                           placeholder="hérité Module 0" />
+                           placeholder="hérité Module 1" />
                     <small class="field-hint" id="sst-ovr-ratio-hint--projete"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-interm--projete">Intermittence</label>
                     <input type="number" class="input" id="sst-ovr-interm--projete" step="0.05" min="0" max="1"
-                           placeholder="hérité Module 0" />
+                           placeholder="hérité Module 1" />
                     <small class="field-hint" id="sst-ovr-interm-hint--projete"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-duree--projete">Durée h/an</label>
                     <input type="number" class="input" id="sst-ovr-duree--projete" step="100" min="0"
-                           placeholder="hérité Module 0" />
+                           placeholder="hérité Module 1" />
                     <small class="field-hint" id="sst-ovr-duree-hint--projete"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-hPointe--projete">H. pointe ECS (h/j)</label>
                     <input type="number" class="input" id="sst-ovr-hPointe--projete" step="0.5" min="0"
-                           placeholder="hérité Module 0" />
+                           placeholder="hérité Module 1" />
                     <small class="field-hint" id="sst-ovr-hPointe-hint--projete"></small>
                   </div>
                   <div class="field">
                     <label class="lbl" for="sst-ovr-puEcs--projete">Puissance unitaire ECS (kW)</label>
                     <input type="number" class="input" id="sst-ovr-puEcs--projete" step="0.1" min="0"
-                           placeholder="hérité Module 0" />
+                           placeholder="hérité Module 1" />
                     <small class="field-hint" id="sst-ovr-puEcs-hint--projete"></small>
                   </div>
                   <div class="field">
-                    <label class="lbl" for="sst-ovr-besoin--projete">Besoin ECS Module 0</label>
+                    <label class="lbl" for="sst-ovr-besoin--projete">Besoin ECS Module 1</label>
                     <input type="text" class="input empty" id="sst-ovr-besoin--projete" readonly />
                   </div>
                 </div>
@@ -912,45 +892,43 @@
     </div>
     <div class="hyp-body">
   
-      <!-- Hypothèses climat -->
-      <div class="hyp-col">
-        <h4>Climat &amp; DJU</h4>
-        <div class="kv-row"><span class="k">T° base hiver</span><span class="v">−7<span class="unit">°C</span><span class="mod-badge m0">Mod.0</span></span></div>
-        <div class="kv-row"><span class="k">T° intérieure ref.</span><span class="v">20<span class="unit">°C</span><span class="mod-badge m0">Mod.0</span></span></div>
-        <div class="kv-row"><span class="k">DJU référence</span><span class="v">2 300<span class="unit">°C·j</span><span class="mod-badge m0">Mod.0</span></span></div>
-        <div class="kv-row"><span class="k">DJU N−1 (base 20°C)</span><span class="v">2 000<span class="unit">°C·j</span><span class="mod-badge m0">Mod.0</span></span></div>
-        <div class="kv-row"><span class="k">Zone climatique</span><span class="v">H1b<span class="mod-badge m0">Mod.0</span></span></div>
+      <!-- Commun — régime réseau + identité bâtiment, utile CH comme ECS -->
+      <div class="hyp-col" data-hyp-group="commun">
+        <h4>Commun</h4>
+        <div class="kv-row"><span class="k">T° départ centrale (hiver)</span><span class="v" id="p2h-t-dep-primaire">—</span></div>
+        <div class="kv-row"><span class="k">T° départ centrale (été)</span><span class="v" id="p2h-t-dep-primaire-ete">—</span></div>
+        <div class="kv-row"><span class="k">Type bâtiment</span><span class="v" id="p2h-type-batiment">—</span></div>
+        <div class="kv-row"><span class="k">Surface de référence</span><span class="v" id="p2h-sref">—</span></div>
+        <div class="kv-row" id="p2h-nblogements-row"><span class="k">Nb logements</span><span class="v" id="p2h-nblogements">—</span></div>
       </div>
-  
-      <!-- Hypothèses régime -->
-      <div class="hyp-col">
-        <h4>Régimes &amp; pincements</h4>
-        <div class="kv-row"><span class="k">ECS départ / retour <span style="color:var(--ink-3); font-weight:400;">(recyclage + EF)</span></span><span class="v">60 / 40<span class="unit">°C</span><span class="mod-badge m0">Mod.0</span></span></div>
-        <div class="kv-row"><span class="k">T° eau froide</span><span class="v">10<span class="unit">°C</span><span class="mod-badge m0">Mod.0</span></span></div>
-        <div class="kv-row"><span class="k">T° retour bouclage ECS</span><span class="v">53<span class="unit">°C</span><span class="mod-badge m0">Mod.0</span></span></div>
-        <div class="kv-row"><span class="k">T° de puisage</span><span class="v">40<span class="unit">°C</span><span class="mod-badge m0">Mod.0</span></span></div>
-        <div class="kv-row"><span class="k">T° départ primaire RCU</span><span class="v">90<span class="unit">°C</span><span class="mod-badge m0">Mod.0</span></span></div>
+
+      <!-- Chauffage — tout ce qui sert au dimensionnement CH -->
+      <div class="hyp-col" data-hyp-group="ch">
+        <h4>Chauffage</h4>
+        <div class="kv-row"><span class="k">T° de coupure chauffage</span><span class="v" id="p2h-t-coupure">—</span></div>
+        <div class="kv-row"><span class="k">T° base hiver</span><span class="v" id="p2h-t-ext-base">—</span></div>
+        <div class="kv-row"><span class="k">DJU référence</span><span class="v" id="p2h-dju-ref">—</span></div>
+        <div id="p2h-dju-annees"></div>
+        <div class="kv-row"><span class="k">Pincement échangeur CH</span><span class="v" id="p2h-pincement-ch">—</span></div>
+        <div class="kv-row"><span class="k">Ratio surfacique</span><span class="v" id="p2h-ratio">—</span></div>
+        <div class="kv-row"><span class="k">Coef. intermittence</span><span class="v" id="p2h-interm">—</span></div>
+        <div class="kv-row"><span class="k">Durée fonct. CH</span><span class="v" id="p2h-duree">—</span></div>
+        <div class="kv-row" id="p2h-pcs-gaz-row"><span class="k">PCS gaz naturel</span><span class="v" id="p2h-pcs-gaz">—</span></div>
+        <div class="kv-row" id="p2h-pci-fioul-row"><span class="k">PCI fioul domestique</span><span class="v" id="p2h-pci-fioul">—</span></div>
       </div>
-  
-      <!-- Module 1 -->
-      <div class="hyp-col">
-        <h4>Données Module 1 · bâtiment</h4>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 24px; padding-bottom:6px; margin-bottom:6px; border-bottom:1px solid var(--line-2);">
-          <div class="kv-row"><span class="k">Type bâtiment</span><span class="v">Logt. collectif<span class="mod-badge m1">Mod.1</span></span></div>
-          <div class="kv-row"><span class="k">Nb logements</span><span class="v">105<span class="mod-badge m1">Mod.1</span></span></div>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 24px;">
-          <div>
-            <div class="kv-row"><span class="k">Ratio surfacique</span><span class="v">80<span class="unit">W/m²</span><span class="mod-badge m1">Mod.1</span></span></div>
-            <div class="kv-row"><span class="k">Coef. intermittence</span><span class="v">0,80<span class="mod-badge m1">Mod.1</span></span></div>
-            <div class="kv-row"><span class="k">Durée fonct. CH</span><span class="v">2 000<span class="unit">h/an</span><span class="mod-badge m1">Mod.1</span></span></div>
-            <div class="kv-row"><span class="k">Surface chauffée</span><span class="v">4 050<span class="unit">m²</span><span class="mod-badge m1">Mod.1</span></span></div>
-          </div>
-          <div>
-            <div class="kv-row"><span class="k">H pointe ECS</span><span class="v">3<span class="unit">h</span><span class="mod-badge m1">Mod.1</span></span></div>
-            <div class="kv-row"><span class="k">Besoin <span style="font-family:'Inter', monospace;">a</span></span><span class="v">500<span class="unit">L/sem/ad_éq</span><span class="mod-badge m1">Mod.1</span></span></div>
-          </div>
-        </div>
+
+      <!-- ECS — tout ce qui sert au dimensionnement ECS -->
+      <div class="hyp-col" data-hyp-group="ecs">
+        <h4>ECS</h4>
+        <div class="kv-row"><span class="k">ECS départ / retour <span style="color:var(--ink-3); font-weight:400;">secondaire</span></span><span class="v" id="p2h-ecs-dep-ret">—</span></div>
+        <div class="kv-row"><span class="k">T° eau froide</span><span class="v" id="p2h-t-eau-froide">—</span></div>
+        <div class="kv-row"><span class="k">T° de puisage ECS</span><span class="v" id="p2h-t-puisage">—</span></div>
+        <div class="kv-row"><span class="k">T° retour bouclage ECS</span><span class="v" id="p2h-t-ret-bouclage">—</span></div>
+        <div class="kv-row"><span class="k">Majoration pertes bouclage ECS</span><span class="v" id="p2h-taux-bouclage">—</span></div>
+        <div class="kv-row"><span class="k">Pincement échangeur ECS</span><span class="v" id="p2h-pincement-ecs">—</span></div>
+        <div class="kv-row"><span class="k">H pointe ECS</span><span class="v" id="p2h-hpointe">—</span></div>
+        <div class="kv-row"><span class="k">Besoin ECS</span><span class="v" id="p2h-besoin">—</span></div>
+        <div class="kv-row"><span class="k">Puissance unitaire ECS</span><span class="v" id="p2h-pu-ecs">—</span></div>
       </div>
   
     </div>
@@ -1019,53 +997,62 @@
       </div>
       <div class="card-body">
 
-        <div class="subhead"><h4>Source de la consommation historique</h4><span class="line"></span></div>
-        <div style="display:flex; gap:8px; margin-bottom:4px;">
-          <span class="src-pill" aria-pressed="true">Compteur énergie</span>
-          <span class="src-pill">Chaudière gaz</span>
-          <span class="src-pill">Chaudière fioul</span>
+        <div class="subhead"><h4>Énergie actuelle</h4><span class="line"></span></div>
+        <p class="field-hint mb-2">Détermine l'unité attendue pour les consommations ci-dessous — synchronisé avec la fiche SST du Module 1.</p>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <button type="button" class="tag tag-energie-rcu p2-energie-btn" data-energie="RCU">RCU</button>
+          <button type="button" class="tag tag-energie-gaz p2-energie-btn" data-energie="Gaz">Gaz</button>
+          <button type="button" class="tag tag-energie-fioul p2-energie-btn" data-energie="Fioul">Fioul</button>
+        </div>
+
+        <div id="p2-perimetre-subhead" class="subhead" style="display:none;"><h4>Périmètre de la consommation</h4><span class="line"></span></div>
+        <div id="p2-perimetre-block" style="display:none; margin-bottom:12px;">
+          <p class="field-hint mb-2">Cette SST est de type CH+ECS — précisez ce que capte la consommation saisie ci-dessous.</p>
+          <div style="display:flex; gap:8px; margin-bottom:10px;">
+            <button type="button" class="src-pill" id="p2-perimetre-ch" data-perimetre="ch" aria-pressed="true">Chauffage seul</button>
+            <button type="button" class="src-pill" id="p2-perimetre-ch-ecs" data-perimetre="ch_ecs" aria-pressed="false">Chauffage + ECS</button>
+          </div>
+          <div class="field-row cols-2" id="p2-repartition-row" style="display:none;">
+            <div class="field">
+              <span class="lbl">Part chauffage <span class="hint">%</span></span>
+              <input type="number" class="input" id="p2-pct-ch" min="0" max="100" step="1" value="70" />
+            </div>
+            <div class="field">
+              <span class="lbl">Part ECS <span class="hint">%</span></span>
+              <input type="number" class="input" id="p2-pct-ecs" min="0" max="100" step="1" value="30" disabled />
+            </div>
+          </div>
         </div>
 
         <div class="subhead"><h4>Consommations historiques</h4><span class="line"></span></div>
-        <div class="field-row">
-          <div class="field">
-            <span class="lbl">Conso CH N−1 <span class="hint">MWh/an</span></span>
-            <div class="input"><span>498</span><span class="unit">MWh/an</span></div>
-          </div>
-          <div class="field">
-            <span class="lbl opt">Conso CH N−2 <span class="hint">MWh/an</span></span>
-            <div class="input empty"><span class="ph">non renseigné</span></div>
-          </div>
-          <div class="field">
-            <span class="lbl opt">Conso CH N−3 <span class="hint">MWh/an</span></span>
-            <div class="input empty"><span class="ph">non renseigné</span></div>
-          </div>
+        <div id="p2-conso-annees"></div>
+        <div class="field-row cols-2" style="margin-top:4px;">
           <div class="field">
             <span class="lbl">Rendement chaudière existante</span>
-            <div class="input"><span>0,88</span><span style="margin-left:auto; color:var(--ink-4); font-size:9px;">▾</span></div>
+            <input type="number" class="input" id="p2-rendement-chaudiere" min="0" max="1" step="0.01" value="0.88" />
           </div>
         </div>
 
         <div class="subhead"><h4>Équipements existants</h4><span class="line"></span></div>
-        <div class="field-row">
-          <div class="field">
-            <span class="lbl opt">Puissance chaudière existante</span>
-            <div class="input"><span>250</span><span class="unit">kW</span></div>
-          </div>
+        <div class="field-row cols-3">
           <div class="field">
             <span class="lbl opt">Nombre de générateurs</span>
-            <div class="input"><span>1</span></div>
+            <input type="number" class="input" id="p2-nb-generateurs" min="0" step="1" placeholder="ex : 1" />
           </div>
-          <div class="field">
-            <span class="lbl opt">Année de mise en service</span>
-            <div class="input empty"><span class="ph">non renseigné</span></div>
+          <div class="field" id="p2-puissance-totale-field">
+            <span class="lbl opt">Puissance totale installée <span class="help-badge" id="p2-generateurs-info-badge" style="display:none;">ℹ</span></span>
+            <div class="help-content" id="p2-generateurs-info-content">En pratique, avec plusieurs générateurs, on ne cumule généralement pas 100 % de chaque puissance nominale : compter environ 75 % de la puissance totale installée pour l'estimation de la puissance réellement disponible.</div>
+            <div class="input-group">
+              <input type="number" class="input" id="p2-puissance-totale" min="0" step="1" placeholder="ex : 250" />
+              <span class="input-group-unit">kW</span>
+            </div>
           </div>
-          <div class="field"></div>
         </div>
+        <div id="p2-generateurs-unitaires"></div>
 
         <div class="subhead"><h4>Départs chauffage secondaires</h4><span class="line"></span></div>
 
-        <div style="border:1px solid #f0c7b5; border-radius:var(--r-lg); padding:12px 14px; background:#fdf3ed;">
+        <div style="border:1px solid var(--hot-border); border-radius:var(--r-lg); padding:12px 14px; background:var(--hot-soft);">
 
           <div class="subhead" style="margin-top:0;"><h4>Type de départ</h4><span class="line"></span></div>
           <div class="field-row cols-2">
@@ -1138,11 +1125,8 @@
             <span class="lbl opt">Puissance souscrite contrat actuel</span>
             <div class="input empty"><span class="ph">non renseigné</span><span class="unit">kW</span></div>
           </div>
-          <div class="field">
-            <span class="lbl opt">Période contrat</span>
-            <div class="input empty"><span class="ph">non renseigné</span></div>
-          </div>
-          <div class="field" style="grid-column: span 2;"></div>
+          <div class="field"></div>
+          <div class="field"></div>
         </div>
 
       </div>
@@ -1279,11 +1263,11 @@
         <div class="subhead"><h4>Volumes EF compteur eau</h4><span class="line"></span></div>
         <div class="field-row">
           <div class="field">
-            <span class="lbl">Conso EF ECS N−1 <span class="hint">m³</span></span>
+            <span class="lbl">Conso EF ECS 2025 <span class="hint">m³</span></span>
             <div class="input"><span>5 000</span><span class="unit">m³</span></div>
           </div>
           <div class="field">
-            <span class="lbl opt">Conso EF ECS N−2 <span class="hint">m³</span></span>
+            <span class="lbl opt">Conso EF ECS 2024 <span class="hint">m³</span></span>
             <div class="input empty"><span class="ph">non renseigné</span><span class="unit">m³</span></div>
           </div>
           <div class="field"></div>
@@ -1293,11 +1277,11 @@
         <div class="subhead"><h4>Énergie compteur d'énergie</h4><span class="line"></span></div>
         <div class="field-row">
           <div class="field">
-            <span class="lbl opt">Conso énergie ECS N−1 <span class="hint">MWh/an</span></span>
+            <span class="lbl opt">Conso énergie ECS 2025 <span class="hint">MWh/an</span></span>
             <div class="input empty"><span class="ph">si compteur énergie</span><span class="unit">MWh/an</span></div>
           </div>
           <div class="field">
-            <span class="lbl opt">Conso énergie ECS N−2 <span class="hint">MWh/an</span></span>
+            <span class="lbl opt">Conso énergie ECS 2024 <span class="hint">MWh/an</span></span>
             <div class="input empty"><span class="ph">non renseigné</span><span class="unit">MWh/an</span></div>
           </div>
           <div class="field"></div>
@@ -1644,7 +1628,7 @@ P = 229 × 500/7 × 1,163 × 45 / 3<br>
     <div class="card-head">
       <h3>Synoptique échangeur chauffage + ECS semi-instantanée</h3>
       <div style="margin-left:auto;">
-        <select style="font-size:11.5px; padding:3px 8px; border:1px solid var(--line); border-radius:var(--r); background:#fff; color:var(--ink-2);">
+        <select style="font-size:11.5px; padding:3px 8px; border:1px solid var(--line); border-radius:var(--r); background:var(--panel); color:var(--ink-2);">
           <option>Semi-instantanée</option>
           <option>Instantanée pure</option>
           <option>à accumulation</option>
