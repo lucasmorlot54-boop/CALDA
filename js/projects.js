@@ -310,6 +310,59 @@ function _migrateProjectData() {
     }
   });
 
+  // ── Migration donneesP2 — nbGenerateurs/puissancesGenerateurs/
+  // puissanceTotaleChaudiere (chauffage seul) → equipements[] (liste commune
+  // CH+ECS, chaque équipement avec son propre type/usage/rendement CH+ECS) ─
+  Object.values(window.donneesP2 || {}).forEach(d => {
+    if (!d) return;
+    const aLegacy = d.nbGenerateurs !== undefined || d.puissancesGenerateurs !== undefined || d.puissanceTotaleChaudiere !== undefined;
+    if (!aLegacy) return;
+    if (!Array.isArray(d.equipements)) {
+      const equipements = [];
+      const rendementCh = d.rendementChaudiere !== undefined ? d.rendementChaudiere : null;
+      const nouvelEquipement = (p) => ({ type: 'chaudiere', usage: 'ch', puissance: p, rendementCh, rendementEcs: null, volumeBallon: null, anneeMES: null });
+      if (Array.isArray(d.puissancesGenerateurs)) {
+        d.puissancesGenerateurs.forEach(p => {
+          if (p !== null && p !== undefined) equipements.push(nouvelEquipement(p));
+        });
+      } else if (d.puissanceTotaleChaudiere !== null && d.puissanceTotaleChaudiere !== undefined) {
+        equipements.push(nouvelEquipement(d.puissanceTotaleChaudiere));
+      }
+      d.equipements = equipements;
+    }
+    delete d.nbGenerateurs;
+    delete d.puissancesGenerateurs;
+    delete d.puissanceTotaleChaudiere;
+    migrated = true;
+  });
+
+  // ── Migration donneesP2 — suppression de rendementChaudiere (global au
+  // bloc "Données chauffage") : le rendement vit désormais au niveau de
+  // chaque équipement (equipements[].rendementCh / .rendementEcs) ─────────
+  Object.values(window.donneesP2 || {}).forEach(d => {
+    if (!d || d.rendementChaudiere === undefined) return;
+    delete d.rendementChaudiere;
+    migrated = true;
+  });
+
+  // ── Migration donneesP2 — consoChParAnnee → consoParAnnee : le bloc
+  // "Consommations" est devenu commun CH+ECS, la consommation saisie n'est
+  // plus forcément spécifique au chauffage (voir périmètre ch/ecs/ch_ecs) ──
+  Object.values(window.donneesP2 || {}).forEach(d => {
+    if (!d || d.consoChParAnnee === undefined) return;
+    if (d.consoParAnnee === undefined) d.consoParAnnee = d.consoChParAnnee;
+    delete d.consoChParAnnee;
+    migrated = true;
+  });
+
+  // ── Migration donneesP2 — suppression de consoSourceParAnnee (distinction
+  // compteur/facture retirée, jugée superflue) ─────────────────────────────
+  Object.values(window.donneesP2 || {}).forEach(d => {
+    if (!d || d.consoSourceParAnnee === undefined) return;
+    delete d.consoSourceParAnnee;
+    migrated = true;
+  });
+
   // ── Migration F6 — pincementEch → pincementCh (projets antérieurs) ───────
   if (hyp.pincementEch !== undefined && hyp.pincementCh === undefined) {
     hyp.pincementCh = hyp.pincementEch;

@@ -93,7 +93,9 @@ function initPuissanceMaquette() {
   refreshSSTSelect();
   afficherEtatVide();
 
-  initDonneesChauffageM2();
+  initConsommationsM2();
+  initEquipementsM2();
+  initDepartsM2();
 }
 
 // Bouton "Modifier" du bandeau SST — renvoie au formulaire d'édition Module 1
@@ -138,7 +140,9 @@ function chargerDonneeSST(ref) {
   const sel = document.getElementById('p2-sst-select');
   if (sel) sel.value = ref;
   renderBandeIdentite();
-  chargerDonneesChauffageM2();
+  chargerConsommationsM2();
+  chargerEquipementsM2();
+  chargerDepartsM2();
 }
 
 // Bandeau vide (aucune SST chargée, ou SST supprimée pendant qu'elle était ouverte)
@@ -155,7 +159,9 @@ function afficherEtatVide() {
   if (l2)   l2.textContent   = 'Choisissez une SST dans la liste';
   if (tags) tags.innerHTML   = '';
   renderBandeHypotheses();
-  chargerDonneesChauffageM2();
+  chargerConsommationsM2();
+  chargerEquipementsM2();
+  chargerDepartsM2();
 }
 
 // Rend le bandeau d'identification (référence, adresse, pastilles) pour p2SstRef,
@@ -186,11 +192,17 @@ function renderBandeIdentite() {
 
   const tags = document.getElementById('p2-sst-tags');
   if (tags) {
+    // État projeté : la SST est par définition raccordée au RCU (c'est
+    // l'objet du projet), l'énergie actuelle (Gaz/Fioul/RCU) ne s'applique
+    // qu'à l'état existant.
+    const badgeEnergieHtml = etatEffectif === 'projete'
+      ? badgeEnergie('RCU')
+      : (b.energieActuelle ? badgeEnergie(b.energieActuelle) : '');
     tags.innerHTML = [
       b.typeSST         ? badgeTypeSst(b.typeSST)          : '',
       b.typeService     ? badgeType(b.typeService)         : '',
       sst.nature        ? badgeNature(sst.nature)          : '',
-      b.energieActuelle ? badgeEnergie(b.energieActuelle)  : '',
+      badgeEnergieHtml,
     ].join('');
   }
 
@@ -299,13 +311,16 @@ function renderBandeHypotheses() {
   _p2SetKv('p2h-pci-fioul', fmt(h.pciFioul, 2), 'kWh/L',  'm0');
 }
 
-// ── Données chauffage (état Existant) — énergie actuelle, périmètre CH/CH+ECS,
-// consommations historiques calées sur les années de l'historique DJU du
-// Module 0 (pour garantir la paire conso/DJU nécessaire à la Méthode 1), et
-// équipements existants. Persisté dans donneesP2[ref__existant] — l'énergie
-// actuelle, elle, est écrite directement sur la SST (sst.existant.energieActuelle),
-// affichée à la fois ici et sur le bandeau SST : une seule source de vérité.
-function initDonneesChauffageM2() {
+// ── Consommations (commun CH + ECS) — énergie actuelle, périmètre Chauffage
+// seul / ECS seul / Chauffage+ECS, consommations historiques calées sur les
+// années de l'historique DJU du Module 0 (pour garantir la paire conso/DJU
+// nécessaire aux Méthodes 1 CH et ECS). Bloc partagé, affiché une seule fois
+// au-dessus des onglets CH/ECS — remplace l'ancien bloc "Énergie compteur
+// d'énergie" (jamais câblé) de la carte ECS. Persisté dans
+// donneesP2[ref__existant] — l'énergie actuelle, elle, est écrite directement
+// sur la SST (sst.existant.energieActuelle), affichée à la fois ici et sur le
+// bandeau SST : une seule source de vérité.
+function initConsommationsM2() {
   document.querySelectorAll('.p2-energie-btn').forEach(btn => {
     btn.addEventListener('click', () => _p2SetEnergieActuelle(btn.dataset.energie));
   });
@@ -315,7 +330,7 @@ function initDonneesChauffageM2() {
       document.querySelectorAll('.src-pill[data-perimetre]').forEach(b => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
       const repartitionRow = document.getElementById('p2-repartition-row');
       if (repartitionRow) repartitionRow.style.display = btn.dataset.perimetre === 'ch_ecs' ? '' : 'none';
-      _p2SauverDonneesChauffage();
+      _p2SauverConsommations();
     });
   });
 
@@ -323,25 +338,11 @@ function initDonneesChauffageM2() {
     const v = Math.min(100, Math.max(0, parseFloat(e.target.value) || 0));
     const pctEcsEl = document.getElementById('p2-pct-ecs');
     if (pctEcsEl) pctEcsEl.value = (100 - v).toFixed(0);
-    _p2SauverDonneesChauffage();
+    _p2SauverConsommations();
   });
 
   document.getElementById('p2-conso-annees')?.addEventListener('input', e => {
-    if (e.target.matches('[data-conso-input]')) _p2SauverDonneesChauffage();
-  });
-
-  document.getElementById('p2-rendement-chaudiere')?.addEventListener('input', _p2SauverDonneesChauffage);
-
-  document.getElementById('p2-nb-generateurs')?.addEventListener('input', () => {
-    _p2RenderGenerateursUnitaires();
-    _p2SauverDonneesChauffage();
-  });
-  document.getElementById('p2-puissance-totale')?.addEventListener('input', _p2SauverDonneesChauffage);
-  document.getElementById('p2-generateurs-unitaires')?.addEventListener('input', e => {
-    if (e.target.matches('[data-generateur-input]')) {
-      _p2MajPuissanceTotaleDepuisUnitaires();
-      _p2SauverDonneesChauffage();
-    }
+    if (e.target.matches('[data-conso-input], [data-conso-mwh-input]')) _p2SauverConsommations();
   });
 }
 
@@ -351,10 +352,17 @@ function _p2SetEnergieActuelle(energie) {
   const sst = (window.sousStations || []).find(s => s.ref === p2SstRef);
   if (!sst || !sst.existant) return;
   sst.existant.energieActuelle = energie;
+  // La nature (Raccordement/Rénovation) dépend de l'énergie existante quand
+  // la SST a aussi un état Projeté — la recalculer immédiatement plutôt que
+  // d'attendre le prochain enregistrement du formulaire Module 1.
+  if (typeof calculerNature === 'function') sst.nature = calculerNature(sst);
   if (typeof saveCurrentProjectData === 'function') saveCurrentProjectData();
   _p2RenderEnergiePills(energie);
   _p2MajUniteConso();
+  _p2MajVisibilitePerimetre();
+  _p2SauverConsommations();
   if (typeof renderBandeIdentite === 'function') renderBandeIdentite();
+  if (typeof rendreTableau === 'function') rendreTableau();
 }
 
 function _p2RenderEnergiePills(energieActive) {
@@ -372,12 +380,35 @@ function _p2MajUniteConso() {
   const energie = (sst && sst.existant && sst.existant.energieActuelle) || '';
   const unite = _p2UniteConsoPourEnergie(energie);
   document.querySelectorAll('#p2-conso-annees [data-unit-label]').forEach(el => { el.textContent = unite; });
+  document.querySelectorAll('#p2-conso-annees [data-conso-label]').forEach(el => { el.textContent = _p2LabelConsoPrincipale(energie); });
+
+  // Le MWh/an secondaire n'a de sens que pour le gaz et le fioul (équivalent
+  // énergie d'une conso en m³/an ou L/an) — pas pour le RCU, déjà en MWh/an.
+  const avecMwh = energie === 'Gaz' || energie === 'Fioul';
+  document.querySelectorAll('#p2-conso-annees [data-conso-mwh-field]').forEach(field => {
+    field.style.display = avecMwh ? '' : 'none';
+    if (!avecMwh) { const inp = field.querySelector('[data-conso-mwh-input]'); if (inp) inp.value = ''; }
+  });
   return unite;
 }
 
-// Reconstruit la liste des lignes "Conso CH {année}" à partir de l'historique
-// DJU du Module 0 — une ligne par année qui existe dans ce tableau
-function _p2RenderConsoAnnees(consoParAnnee) {
+// Reconstruit la liste des cartes "{année}" à partir de l'historique DJU du
+// Module 0 — une carte par année qui existe dans ce tableau (même thème
+// visuel que les cartes "Équipements existants"). Pour le gaz et le fioul,
+// une valeur MWh/an secondaire (optionnelle) — l'équivalent énergie de la
+// conso volumique relevée au compteur/à la livraison — complète l'unité
+// principale.
+// Libellé du relevé principal — distingue le relevé d'un compteur d'énergie
+// (RCU, direct en MWh/an) du relevé volumique combustible (gaz au compteur
+// en m³/an, fioul à la livraison/cuve en L/an).
+function _p2LabelConsoPrincipale(energie) {
+  if (energie === 'RCU')   return 'Consommation de chaleur (compteur d’énergie)';
+  if (energie === 'Gaz')   return 'Consommation de gaz (compteur)';
+  if (energie === 'Fioul') return 'Consommation de fioul (livraisons)';
+  return 'Consommation';
+}
+
+function _p2RenderConsoAnnees(consoParAnnee, consoMwhParAnnee) {
   const container = document.getElementById('p2-conso-annees');
   if (!container) return;
   const h = window.hypotheses || {};
@@ -393,91 +424,384 @@ function _p2RenderConsoAnnees(consoParAnnee) {
   const sst = (window.sousStations || []).find(s => s.ref === p2SstRef);
   const energie = (sst && sst.existant && sst.existant.energieActuelle) || '';
   const uniteLabel = _p2UniteConsoPourEnergie(energie);
+  const labelPrincipal = _p2LabelConsoPrincipale(energie);
+  const avecMwh = energie === 'Gaz' || energie === 'Fioul';
 
   container.innerHTML = annees.map(r => {
-    const val = (consoParAnnee || {})[r.annee];
-    const djuTxt = r.dju != null ? `${Number(r.dju).toLocaleString('fr-FR')} °C·j` : 'non renseigné';
-    return `<div class="field-row cols-2">
-      <div class="field">
-        <span class="lbl">Conso CH ${esc(String(r.annee))}</span>
-        <div class="input-group">
-          <input type="number" class="input" data-conso-input data-annee="${esc(String(r.annee))}" placeholder="non renseigné" value="${val ?? ''}" />
-          <span class="input-group-unit" data-unit-label>${esc(uniteLabel)}</span>
-        </div>
+    const anneeStr = esc(String(r.annee));
+    const val    = (consoParAnnee || {})[r.annee];
+    const valMwh = (consoMwhParAnnee || {})[r.annee];
+    return `<div class="p2-subcard p2-conso-card">
+      <div class="p2-subcard-head">
+        <span class="p2-subcard-title">${anneeStr}</span>
       </div>
-      <div class="field">
-        <span class="lbl" style="color:var(--ink-3); font-weight:400;">DJU ${esc(String(r.annee))} (référence)</span>
-        <div class="input empty"><span class="ph">${esc(djuTxt)}</span></div>
+      <div class="field-row cols-2">
+        <div class="field">
+          <span class="lbl" data-conso-label>${esc(labelPrincipal)}</span>
+          <div class="input-group">
+            <input type="number" class="input" data-conso-input data-annee="${anneeStr}" placeholder="non renseigné" value="${val ?? ''}" />
+            <span class="input-group-unit" data-unit-label>${esc(uniteLabel)}</span>
+          </div>
+        </div>
+        <div class="field" data-conso-mwh-field style="${avecMwh ? '' : 'display:none;'}">
+          <span class="lbl opt">Équivalent énergie <span class="hint">MWh/an</span></span>
+          <input type="number" class="input" data-conso-mwh-input data-annee="${anneeStr}" placeholder="si connu (ex. facture)" value="${valMwh ?? ''}" />
+        </div>
       </div>
     </div>`;
   }).join('');
 }
 
-// Génère les champs "Puissance générateur i" quand il y a plusieurs générateurs ;
-// avec un seul générateur (ou aucun renseigné), un seul champ total suffit.
-function _p2RenderGenerateursUnitaires(puissancesUnitaires) {
-  const container = document.getElementById('p2-generateurs-unitaires');
-  const totalField = document.getElementById('p2-puissance-totale-field');
-  const totalInput = document.getElementById('p2-puissance-totale');
-  const infoBadge  = document.getElementById('p2-generateurs-info-badge');
-  if (!container) return;
+// ── Équipements existants (commun CH + ECS) ──────────────────────────────
+// Un ou plusieurs équipements (chaudière, échangeur, ballon, PAC…), chacun
+// avec son propre type, son usage (Chauffage / ECS / Chauffage+ECS) et son
+// rendement — un équipement mixte porte un rendement CH et un rendement ECS
+// distincts. Remplace les anciens champs nbGenerateurs/puissancesGenerateurs/
+// puissanceTotaleChaudiere (CH seul, dans "Données chauffage") et les champs
+// ECS jamais câblés de la carte ECS. Bloc partagé, affiché une seule fois
+// au-dessus des onglets CH/ECS. Persisté dans
+// donneesP2[ref__existant].equipements — voir migration dans
+// _migrateProjectData() (js/projects.js).
+const P2_EQUIP_TYPES = [
+  { value: 'chaudiere', label: 'Chaudière' },
+  { value: 'echangeur', label: 'Échangeur' },
+  { value: 'ballon',    label: 'Ballon' },
+  { value: 'pac',       label: 'PAC' },
+  { value: 'autre',     label: 'Autre' },
+];
 
-  const nb = parseInt(document.getElementById('p2-nb-generateurs')?.value, 10) || 0;
+// Type par défaut d'un nouvel équipement, déduit de l'énergie actuelle de la
+// SST (bandeau SST / Données chauffage) : RCU → échangeur, Gaz/Fioul → chaudière.
+function _p2DefaultEquipType() {
+  const sst = (window.sousStations || []).find(s => s.ref === p2SstRef);
+  const energie = (sst && sst.existant && sst.existant.energieActuelle) || '';
+  return energie === 'RCU' ? 'echangeur' : 'chaudiere';
+}
 
-  if (nb <= 1) {
-    container.innerHTML = '';
-    if (infoBadge) infoBadge.style.display = 'none';
-    if (totalInput) totalInput.readOnly = false;
-    return;
-  }
-
-  if (infoBadge) infoBadge.style.display = '';
-  if (totalInput) totalInput.readOnly = true;
-
-  const valeurs = puissancesUnitaires || [];
-  container.innerHTML = `<div class="field-row cols-3" style="margin-top:8px;">` +
-    Array.from({ length: nb }, (_, i) => `
+function _p2EquipementCardHtml(eq, idx) {
+  eq = eq || {};
+  const type  = eq.type  || _p2DefaultEquipType();
+  const usage = eq.usage || 'ch';
+  const estChaudiere = type === 'chaudiere';
+  const avecCh  = estChaudiere && (usage === 'ch'  || usage === 'ch_ecs');
+  const avecEcs = estChaudiere && (usage === 'ecs' || usage === 'ch_ecs');
+  const estBallon = type === 'ballon';
+  return `<div class="p2-subcard p2-equip-card">
+    <div class="p2-subcard-head">
+      <span class="p2-subcard-title">Équipement ${idx + 1}</span>
+      <button type="button" class="btn ghost sm p2-subcard-remove p2-equip-remove" title="Retirer cet équipement">✕</button>
+    </div>
+    <div class="field-row cols-4">
       <div class="field">
-        <span class="lbl opt">Puissance générateur ${i + 1}</span>
+        <span class="lbl opt">Référence <span class="hint">identification</span></span>
+        <input type="text" class="input p2-equip-label" placeholder="ex : Chaudière n°1" value="${esc(eq.label ?? '')}" />
+      </div>
+      <div class="field">
+        <span class="lbl">Type</span>
+        <select class="input p2-equip-type">
+          ${P2_EQUIP_TYPES.map(t => `<option value="${t.value}" ${type === t.value ? 'selected' : ''}>${t.label}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field">
+        <span class="lbl">Usage</span>
+        <select class="input p2-equip-usage">
+          <option value="ch"     ${usage === 'ch'     ? 'selected' : ''}>Chauffage</option>
+          <option value="ecs"    ${usage === 'ecs'    ? 'selected' : ''}>ECS</option>
+          <option value="ch_ecs" ${usage === 'ch_ecs' ? 'selected' : ''}>Mixte (CH + ECS)</option>
+        </select>
+      </div>
+      <div class="field">
+        <span class="lbl">Puissance unitaire <span class="hint">kW</span></span>
         <div class="input-group">
-          <input type="number" class="input" data-generateur-input data-idx="${i}" min="0" step="1" placeholder="ex : 250" value="${valeurs[i] ?? ''}" />
+          <input type="number" class="input p2-equip-puissance" min="0" step="1" placeholder="ex : 250" value="${eq.puissance ?? ''}" />
           <span class="input-group-unit">kW</span>
         </div>
-      </div>`).join('') +
-    `</div>`;
-
-  if (!totalField) return;
-  _p2MajPuissanceTotaleDepuisUnitaires();
+      </div>
+    </div>
+    <div class="field-row cols-4">
+      <div class="field">
+        <span class="lbl opt">Année de mise en service</span>
+        <input type="number" class="input p2-equip-annee" min="1950" max="2100" step="1" placeholder="ex : 2010" value="${eq.anneeMES ?? ''}" />
+      </div>
+      <div class="field p2-equip-rend-ch-field" style="${avecCh ? '' : 'display:none;'}">
+        <span class="lbl opt">Rendement CH <span class="hint">0–1</span></span>
+        <input type="number" class="input p2-equip-rendement-ch" min="0" max="1" step="0.01" placeholder="ex : 0,88" value="${eq.rendementCh ?? ''}" />
+      </div>
+      <div class="field p2-equip-rend-ecs-field" style="${avecEcs ? '' : 'display:none;'}">
+        <span class="lbl opt">Rendement ECS <span class="hint">0–1</span></span>
+        <input type="number" class="input p2-equip-rendement-ecs" min="0" max="1" step="0.01" placeholder="ex : 0,88" value="${eq.rendementEcs ?? ''}" />
+      </div>
+      <div class="field p2-equip-volume-field" style="${estBallon ? '' : 'display:none;'}">
+        <span class="lbl opt">Volume ballon <span class="hint">L</span></span>
+        <input type="number" class="input p2-equip-volume" min="0" step="1" placeholder="ex : 1000" value="${eq.volumeBallon ?? ''}" />
+      </div>
+    </div>
+  </div>`;
 }
 
-function _p2MajPuissanceTotaleDepuisUnitaires() {
-  const totalInput = document.getElementById('p2-puissance-totale');
-  if (!totalInput) return;
-  const somme = Array.from(document.querySelectorAll('#p2-generateurs-unitaires [data-generateur-input]'))
-    .reduce((acc, el) => acc + (parseFloat(el.value) || 0), 0);
-  totalInput.value = somme || '';
+// Affiche toujours au moins une carte (vide si aucun équipement enregistré) —
+// évite d'imposer un clic sur "+ Ajouter un équipement" avant de pouvoir saisir.
+function renderEquipements(liste) {
+  const container = document.getElementById('p2-equipements-liste');
+  if (!container) return;
+  const arr = Array.isArray(liste) && liste.length ? liste : [{}];
+  container.innerHTML = arr.map(_p2EquipementCardHtml).join('');
 }
 
-// Charge le bloc "Données chauffage" pour la SST actuellement ouverte en M2
-function chargerDonneesChauffageM2() {
+// Lit les cartes actuellement affichées dans le formulaire (pas
+// donneesP2, qui n'est mis à jour qu'à la sauvegarde)
+function _lireEquipements() {
+  const g = (card, sel) => { const v = parseFloat(card.querySelector(sel)?.value); return isNaN(v) ? null : v; };
+  const t = (card, sel) => (card.querySelector(sel)?.value || '').trim();
+  return Array.from(document.querySelectorAll('#p2-equipements-liste .p2-equip-card')).map(card => ({
+    label:        t(card, '.p2-equip-label'),
+    type:         card.querySelector('.p2-equip-type')?.value  || 'chaudiere',
+    usage:        card.querySelector('.p2-equip-usage')?.value || 'ch',
+    anneeMES:     g(card, '.p2-equip-annee'),
+    puissance:    g(card, '.p2-equip-puissance'),
+    rendementCh:  g(card, '.p2-equip-rendement-ch'),
+    rendementEcs: g(card, '.p2-equip-rendement-ecs'),
+    volumeBallon: g(card, '.p2-equip-volume'),
+  })).filter(eq => eq.label || eq.puissance != null || eq.anneeMES != null || eq.rendementCh != null || eq.rendementEcs != null || eq.volumeBallon != null);
+}
+
+// Charge le bloc "Équipements existants" pour la SST actuellement ouverte en M2
+function chargerEquipementsM2() {
+  const sst = (window.sousStations || []).find(s => s.ref === p2SstRef);
+  const d2  = sst ? ((window.donneesP2 || {})[sst.ref + '__existant'] || {}) : {};
+  renderEquipements(d2.equipements);
+}
+
+// Sauvegarde le bloc "Équipements existants" pour la SST actuellement ouverte
+function _p2SauverEquipements() {
+  const sst = (window.sousStations || []).find(s => s.ref === p2SstRef);
+  if (!sst) return;
+  const key = sst.ref + '__existant';
+  if (!window.donneesP2) window.donneesP2 = {};
+  if (!window.donneesP2[key]) window.donneesP2[key] = {};
+  window.donneesP2[key].equipements = _lireEquipements();
+  if (typeof saveCurrentProjectData === 'function') saveCurrentProjectData();
+}
+
+// Renumérote les titres "Équipement N" après ajout/suppression
+function _p2RenumeroterEquipements() {
+  document.querySelectorAll('#p2-equipements-liste .p2-equip-card .p2-subcard-title').forEach((el, i) => {
+    el.textContent = 'Équipement ' + (i + 1);
+  });
+}
+
+// Recalcule la visibilité des champs conditionnels (rendements liés au type
+// chaudière + à l'usage, volume ballon lié au type ballon) pour une carte donnée
+function _p2RecomputeEquipCardVisibility(card) {
+  const type  = card.querySelector('.p2-equip-type')?.value  || 'chaudiere';
+  const usage = card.querySelector('.p2-equip-usage')?.value || 'ch';
+  const estChaudiere = type === 'chaudiere';
+  const avecCh  = estChaudiere && (usage === 'ch'  || usage === 'ch_ecs');
+  const avecEcs = estChaudiere && (usage === 'ecs' || usage === 'ch_ecs');
+  const estBallon = type === 'ballon';
+
+  const rendChField  = card.querySelector('.p2-equip-rend-ch-field');
+  const rendEcsField = card.querySelector('.p2-equip-rend-ecs-field');
+  const volField     = card.querySelector('.p2-equip-volume-field');
+  if (rendChField)  { rendChField.style.display  = avecCh  ? '' : 'none'; if (!avecCh)  card.querySelector('.p2-equip-rendement-ch').value  = ''; }
+  if (rendEcsField) { rendEcsField.style.display = avecEcs ? '' : 'none'; if (!avecEcs) card.querySelector('.p2-equip-rendement-ecs').value = ''; }
+  if (volField)     { volField.style.display     = estBallon ? '' : 'none'; if (!estBallon) card.querySelector('.p2-equip-volume').value    = ''; }
+}
+
+function initEquipementsM2() {
+  document.getElementById('p2-equipement-ajouter')?.addEventListener('click', () => {
+    const container = document.getElementById('p2-equipements-liste');
+    if (!container) return;
+    const idx = container.querySelectorAll('.p2-equip-card').length;
+    container.insertAdjacentHTML('beforeend', _p2EquipementCardHtml({ type: _p2DefaultEquipType() }, idx));
+    container.querySelector('.p2-equip-card:last-child .p2-equip-label')?.focus();
+    _p2SauverEquipements();
+  });
+
+  document.getElementById('p2-equipements-liste')?.addEventListener('click', e => {
+    const btn = e.target.closest('.p2-equip-remove');
+    if (!btn) return;
+    btn.closest('.p2-equip-card')?.remove();
+    if (!document.querySelector('#p2-equipements-liste .p2-equip-card')) renderEquipements([]);
+    else _p2RenumeroterEquipements();
+    _p2SauverEquipements();
+  });
+
+  document.getElementById('p2-equipements-liste')?.addEventListener('change', e => {
+    const card = e.target.closest('.p2-equip-card');
+    if (!card) return;
+    if (!e.target.matches('.p2-equip-usage, .p2-equip-type')) return;
+    _p2RecomputeEquipCardVisibility(card);
+    _p2SauverEquipements();
+  });
+
+  document.getElementById('p2-equipements-liste')?.addEventListener('input', e => {
+    if (e.target.matches('.p2-equip-label, .p2-equip-puissance, .p2-equip-volume, .p2-equip-annee, .p2-equip-rendement-ch, .p2-equip-rendement-ecs')) {
+      _p2SauverEquipements();
+    }
+  });
+}
+
+// ── Départs chauffage secondaires ────────────────────────────────────────
+// Un ou plusieurs départs secondaires — DN, débit, loi d'eau (départ/retour),
+// ΔT émetteur, régulation, émetteur. Champs de saisie libre, non branchés sur
+// la table DN du module Référentiels ni sur un calcul hydraulique (portage
+// futur). Alimente la Méthode 2B. Persisté dans
+// donneesP2[ref__existant].departsCh.
+function _p2DepartCardHtml(dep, idx) {
+  dep = dep || {};
+  return `<div class="p2-subcard p2-depart-card">
+    <div class="p2-subcard-head">
+      <span class="p2-subcard-title">Départ ${idx + 1}</span>
+      <button type="button" class="btn ghost sm p2-subcard-remove p2-depart-remove" title="Retirer ce départ">✕</button>
+    </div>
+    <div class="field-row cols-4">
+      <div class="field">
+        <span class="lbl opt">Régulation</span>
+        <input type="text" class="input p2-depart-regulation" placeholder="ex : Constant" value="${esc(dep.regulation ?? '')}" />
+      </div>
+      <div class="field">
+        <span class="lbl opt">Émetteur</span>
+        <input type="text" class="input p2-depart-emetteur" placeholder="ex : Radiateur" value="${esc(dep.emetteur ?? '')}" />
+      </div>
+      <div class="field">
+        <span class="lbl opt">DN</span>
+        <input type="text" class="input p2-depart-dn" placeholder="ex : DN25" value="${esc(dep.dn ?? '')}" />
+      </div>
+      <div class="field">
+        <span class="lbl opt">Débit <span class="hint">m³/h</span></span>
+        <input type="number" class="input p2-depart-debit" min="0" step="0.1" placeholder="ex : 1,0" value="${dep.debit ?? ''}" />
+      </div>
+    </div>
+    <div class="field-row cols-4">
+      <div class="field">
+        <span class="lbl opt">T° départ <span class="hint">°C</span></span>
+        <input type="number" class="input p2-depart-t-depart" min="0" max="120" step="1" placeholder="ex : 60" value="${dep.tDepart ?? ''}" />
+      </div>
+      <div class="field">
+        <span class="lbl opt">T° retour <span class="hint">°C</span></span>
+        <input type="number" class="input p2-depart-t-retour" min="0" max="120" step="1" placeholder="ex : 40" value="${dep.tRetour ?? ''}" />
+      </div>
+      <div class="field">
+        <span class="lbl opt">ΔT émetteur <span class="hint">°C</span></span>
+        <input type="number" class="input p2-depart-delta-t" min="0" max="60" step="1" placeholder="ex : 20" value="${dep.deltaTEmetteur ?? ''}" />
+      </div>
+      <div class="field"></div>
+    </div>
+  </div>`;
+}
+
+function renderDeparts(liste) {
+  const container = document.getElementById('p2-departs-liste');
+  if (!container) return;
+  const arr = Array.isArray(liste) ? liste : [];
+  container.innerHTML = arr.length
+    ? arr.map(_p2DepartCardHtml).join('')
+    : '<p class="p2-subcard-empty">Aucun départ enregistré pour l\'instant.</p>';
+}
+
+function _lireDeparts() {
+  const g = (card, sel) => { const v = parseFloat(card.querySelector(sel)?.value); return isNaN(v) ? null : v; };
+  const t = (card, sel) => (card.querySelector(sel)?.value || '').trim();
+  return Array.from(document.querySelectorAll('#p2-departs-liste .p2-depart-card')).map(card => ({
+    regulation:     t(card, '.p2-depart-regulation'),
+    emetteur:       t(card, '.p2-depart-emetteur'),
+    dn:             t(card, '.p2-depart-dn'),
+    debit:          g(card, '.p2-depart-debit'),
+    tDepart:        g(card, '.p2-depart-t-depart'),
+    tRetour:        g(card, '.p2-depart-t-retour'),
+    deltaTEmetteur: g(card, '.p2-depart-delta-t'),
+  })).filter(d => d.regulation || d.emetteur || d.dn || d.debit != null || d.tDepart != null || d.tRetour != null || d.deltaTEmetteur != null);
+}
+
+function chargerDepartsM2() {
+  const sst = (window.sousStations || []).find(s => s.ref === p2SstRef);
+  const d2  = sst ? ((window.donneesP2 || {})[sst.ref + '__existant'] || {}) : {};
+  renderDeparts(d2.departsCh);
+}
+
+function _p2SauverDeparts() {
+  const sst = (window.sousStations || []).find(s => s.ref === p2SstRef);
+  if (!sst) return;
+  const key = sst.ref + '__existant';
+  if (!window.donneesP2) window.donneesP2 = {};
+  if (!window.donneesP2[key]) window.donneesP2[key] = {};
+  window.donneesP2[key].departsCh = _lireDeparts();
+  if (typeof saveCurrentProjectData === 'function') saveCurrentProjectData();
+}
+
+function _p2RenumeroterDeparts() {
+  document.querySelectorAll('#p2-departs-liste .p2-depart-card .p2-subcard-title').forEach((el, i) => {
+    el.textContent = 'Départ ' + (i + 1);
+  });
+}
+
+function initDepartsM2() {
+  document.getElementById('p2-depart-ajouter')?.addEventListener('click', () => {
+    const container = document.getElementById('p2-departs-liste');
+    if (!container) return;
+    if (!container.querySelector('.p2-depart-card')) container.innerHTML = '';
+    const idx = container.querySelectorAll('.p2-depart-card').length;
+    container.insertAdjacentHTML('beforeend', _p2DepartCardHtml({}, idx));
+    container.querySelector('.p2-depart-card:last-child .p2-depart-regulation')?.focus();
+    _p2SauverDeparts();
+  });
+
+  document.getElementById('p2-departs-liste')?.addEventListener('click', e => {
+    const btn = e.target.closest('.p2-depart-remove');
+    if (!btn) return;
+    btn.closest('.p2-depart-card')?.remove();
+    if (!document.querySelector('#p2-departs-liste .p2-depart-card')) renderDeparts([]);
+    else _p2RenumeroterDeparts();
+    _p2SauverDeparts();
+  });
+
+  document.getElementById('p2-departs-liste')?.addEventListener('input', e => {
+    if (e.target.matches('.p2-depart-regulation, .p2-depart-emetteur, .p2-depart-dn, .p2-depart-debit, .p2-depart-t-depart, .p2-depart-t-retour, .p2-depart-delta-t')) {
+      _p2SauverDeparts();
+    }
+  });
+}
+
+// Affiche/masque le bloc périmètre (Chauffage seul / ECS seul / Chauffage+ECS)
+// et le choix laissé ou non à l'utilisateur — n'a de sens que si la SST est de
+// type CH+ECS. En gaz/fioul, chaudière/cuve commune par construction :
+// périmètre forcé à "Chauffage + ECS", pas de choix proposé (seule la
+// répartition % reste demandée). En RCU, la SST peut avoir des sous-compteurs
+// séparés : le choix reste ouvert à l'utilisateur.
+function _p2MajVisibilitePerimetre() {
+  const sst = (window.sousStations || []).find(s => s.ref === p2SstRef);
+  const d2  = sst ? ((window.donneesP2 || {})[sst.ref + '__existant'] || {}) : {};
+  const energie = (sst && sst.existant && sst.existant.energieActuelle) || '';
+  const typeService = sst ? (sst.existant || {}).typeService : null;
+  const estChEcs = typeService === 'CH+ECS';
+  const avecChoixPerimetre = estChEcs && energie === 'RCU';
+
+  const perimetreSubhead   = document.getElementById('p2-perimetre-subhead');
+  const perimetreBlock     = document.getElementById('p2-perimetre-block');
+  const perimetrePills     = document.getElementById('p2-perimetre-pills');
+  const perimetrePillsNote = document.getElementById('p2-perimetre-pills-note');
+  const perimetreAutoNote  = document.getElementById('p2-perimetre-auto-note');
+  if (perimetreSubhead) perimetreSubhead.style.display = estChEcs ? '' : 'none';
+  if (perimetreBlock)   perimetreBlock.style.display   = estChEcs ? '' : 'none';
+  if (perimetrePills)     perimetrePills.style.display     = avecChoixPerimetre ? '' : 'none';
+  if (perimetrePillsNote) perimetrePillsNote.style.display = avecChoixPerimetre ? '' : 'none';
+  if (perimetreAutoNote)  perimetreAutoNote.style.display  = (estChEcs && !avecChoixPerimetre) ? '' : 'none';
+
+  const perimetre = avecChoixPerimetre ? (d2.perimetreConsoCh || 'ch') : 'ch_ecs';
+  document.querySelectorAll('.src-pill[data-perimetre]').forEach(b => b.setAttribute('aria-pressed', b.dataset.perimetre === perimetre ? 'true' : 'false'));
+  const repartitionRow = document.getElementById('p2-repartition-row');
+  if (repartitionRow) repartitionRow.style.display = (estChEcs && perimetre === 'ch_ecs') ? '' : 'none';
+}
+
+// Charge le bloc "Consommations" pour la SST actuellement ouverte en M2
+function chargerConsommationsM2() {
   const sst = (window.sousStations || []).find(s => s.ref === p2SstRef);
   const d2  = sst ? ((window.donneesP2 || {})[sst.ref + '__existant'] || {}) : {};
 
   const energie = (sst && sst.existant && sst.existant.energieActuelle) || '';
   _p2RenderEnergiePills(energie);
-
-  // Le bloc périmètre CH/CH+ECS n'a de sens que si la SST est de type CH+ECS
-  const typeService = sst ? (sst.existant || {}).typeService : null;
-  const estChEcs = typeService === 'CH+ECS';
-  const perimetreSubhead = document.getElementById('p2-perimetre-subhead');
-  const perimetreBlock   = document.getElementById('p2-perimetre-block');
-  if (perimetreSubhead) perimetreSubhead.style.display = estChEcs ? '' : 'none';
-  if (perimetreBlock)   perimetreBlock.style.display   = estChEcs ? '' : 'none';
-
-  const perimetre = d2.perimetreConsoCh || 'ch';
-  document.querySelectorAll('.src-pill[data-perimetre]').forEach(b => b.setAttribute('aria-pressed', b.dataset.perimetre === perimetre ? 'true' : 'false'));
-  const repartitionRow = document.getElementById('p2-repartition-row');
-  if (repartitionRow) repartitionRow.style.display = (estChEcs && perimetre === 'ch_ecs') ? '' : 'none';
+  _p2MajVisibilitePerimetre();
 
   const pctCh = d2.pctChSurChEcs ?? 70;
   const pctChEl  = document.getElementById('p2-pct-ch');
@@ -485,20 +809,11 @@ function chargerDonneesChauffageM2() {
   if (pctChEl)  pctChEl.value  = pctCh;
   if (pctEcsEl) pctEcsEl.value = 100 - pctCh;
 
-  const rendementEl = document.getElementById('p2-rendement-chaudiere');
-  if (rendementEl) rendementEl.value = d2.rendementChaudiere ?? 0.88;
-
-  const nbGenerateursEl = document.getElementById('p2-nb-generateurs');
-  if (nbGenerateursEl) nbGenerateursEl.value = d2.nbGenerateurs ?? '';
-  _p2RenderGenerateursUnitaires(d2.puissancesGenerateurs);
-  const totalInput = document.getElementById('p2-puissance-totale');
-  if (totalInput && (d2.nbGenerateurs || 0) <= 1) totalInput.value = d2.puissanceTotaleChaudiere ?? '';
-
-  _p2RenderConsoAnnees(d2.consoChParAnnee);
+  _p2RenderConsoAnnees(d2.consoParAnnee, d2.consoMwhParAnnee);
 }
 
-// Sauvegarde le bloc "Données chauffage" pour la SST actuellement ouverte
-function _p2SauverDonneesChauffage() {
+// Sauvegarde le bloc "Consommations" pour la SST actuellement ouverte
+function _p2SauverConsommations() {
   const sst = (window.sousStations || []).find(s => s.ref === p2SstRef);
   if (!sst) return;
   const key = sst.ref + '__existant';
@@ -506,31 +821,36 @@ function _p2SauverDonneesChauffage() {
   if (!window.donneesP2[key]) window.donneesP2[key] = {};
   const d2 = window.donneesP2[key];
 
-  const perimetreBtn = document.querySelector('.src-pill[data-perimetre][aria-pressed="true"]');
-  d2.perimetreConsoCh = perimetreBtn ? perimetreBtn.dataset.perimetre : 'ch';
+  // Choix du périmètre laissé à l'utilisateur uniquement en RCU (sous-compteurs
+  // CH/ECS potentiellement séparés) — en gaz/fioul, chaudière/cuve commune par
+  // construction : périmètre effectif forcé à "Chauffage + ECS" à l'affichage
+  // (voir chargerConsommationsM2/_p2MajVisibilitePerimetre), sans écraser le
+  // choix RCU déjà enregistré si l'utilisateur revient dessus plus tard.
+  const typeService = (sst.existant || {}).typeService;
+  const estChEcs = typeService === 'CH+ECS';
+  const energieActuelle = (sst.existant || {}).energieActuelle;
+  const avecChoixPerimetre = estChEcs && energieActuelle === 'RCU';
+  if (avecChoixPerimetre) {
+    const perimetreBtn = document.querySelector('.src-pill[data-perimetre][aria-pressed="true"]');
+    d2.perimetreConsoCh = perimetreBtn ? perimetreBtn.dataset.perimetre : 'ch';
+  } else if (d2.perimetreConsoCh === undefined) {
+    d2.perimetreConsoCh = estChEcs ? 'ch_ecs' : 'ch';
+  }
   d2.pctChSurChEcs = Math.min(100, Math.max(0, parseFloat(document.getElementById('p2-pct-ch')?.value) || 70));
-
-  const rendement = parseFloat(document.getElementById('p2-rendement-chaudiere')?.value);
-  d2.rendementChaudiere = isNaN(rendement) ? 0.88 : rendement;
 
   const consoParAnnee = {};
   document.querySelectorAll('#p2-conso-annees [data-conso-input]').forEach(input => {
     const v = parseFloat(input.value);
     if (!isNaN(v)) consoParAnnee[input.dataset.annee] = v;
   });
-  d2.consoChParAnnee = consoParAnnee;
+  d2.consoParAnnee = consoParAnnee;
 
-  const nb = parseInt(document.getElementById('p2-nb-generateurs')?.value, 10) || 0;
-  d2.nbGenerateurs = nb || null;
-  if (nb > 1) {
-    d2.puissancesGenerateurs = Array.from(document.querySelectorAll('#p2-generateurs-unitaires [data-generateur-input]'))
-      .map(el => { const v = parseFloat(el.value); return isNaN(v) ? null : v; });
-    d2.puissanceTotaleChaudiere = null;
-  } else {
-    d2.puissancesGenerateurs = null;
-    const totalV = parseFloat(document.getElementById('p2-puissance-totale')?.value);
-    d2.puissanceTotaleChaudiere = isNaN(totalV) ? null : totalV;
-  }
+  const consoMwhParAnnee = {};
+  document.querySelectorAll('#p2-conso-annees [data-conso-mwh-input]').forEach(input => {
+    const v = parseFloat(input.value);
+    if (!isNaN(v)) consoMwhParAnnee[input.dataset.annee] = v;
+  });
+  d2.consoMwhParAnnee = consoMwhParAnnee;
 
   if (typeof saveCurrentProjectData === 'function') saveCurrentProjectData();
 }

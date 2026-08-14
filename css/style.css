@@ -2471,6 +2471,36 @@
   .dju-historique-row .dju-remove:hover { color: var(--danger-ink); border-color: var(--danger); }
   .dju-historique-empty { color: var(--ink-4); font-size: 12px; padding: 6px 2px; }
 
+  /* Cartes répétables M2 — Équipements existants (commun CH+ECS) et Départs
+     chauffage secondaires : même gabarit, plusieurs champs sur 2 lignes. Fond
+     blanc + liseré indigo (couleur déjà associée au "Mixte CH+ECS" dans les
+     pastilles) plutôt qu'un gris plat, pour mieux se détacher en mode jour. */
+  .p2-subcard {
+    border: 1px solid var(--line); border-left: 3px solid var(--pill-indigo-border);
+    border-radius: var(--r-lg);
+    background: var(--panel);
+    box-shadow: var(--shadow-s);
+    padding: 10px 12px 12px 12px;
+    margin-bottom: 10px;
+  }
+  .p2-subcard-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .p2-subcard-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--pill-indigo-ink);
+  }
+  .p2-subcard .lbl .hint { color: var(--ink-3); }
+  .p2-subcard-remove {
+    height: 26px; width: 26px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-3);
+  }
+  .p2-subcard-remove:hover { color: var(--danger-ink); border-color: var(--danger); }
+  .p2-subcard .field-row + .field-row { margin-top: 8px; }
+  .p2-subcard-empty { color: var(--ink-4); font-size: 12px; padding: 6px 2px; }
+
   /* Barre d'enregistrement transactionnelle (M0) */
   .hyp-save-bar {
     position: sticky;

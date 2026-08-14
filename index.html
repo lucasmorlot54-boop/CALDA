@@ -790,6 +790,7 @@
             <th data-col-key="sref">Sref (m²)</th>
             <th data-col-key="nbLogements">Logements</th>
             <th data-col-key="nature">Nature</th>
+            <th data-col-key="energie">Énergie</th>
             <th style="text-align:center" data-col-key="pCh">P Ut. CH (kW)</th>
             <th style="text-align:center" data-col-key="pEcs">P Ut. ECS (kW)</th>
             <th style="text-align:center" data-col-key="pTotal">P Ut. totale (kW)</th>
@@ -798,7 +799,7 @@
         </thead>
         <tbody id="sst-tbody">
           <tr>
-            <td colspan="12">
+            <td colspan="13">
               <div class="empty-state">
                 Aucune sous-station enregistrée.<br>
                 Cliquez sur <strong>+ Nouvelle SST</strong> pour commencer.
@@ -935,6 +936,66 @@
   </div>
 
   <!-- ====================================================== -->
+  <!-- Équipements existants sur site (commun CH + ECS)        -->
+  <!-- ====================================================== -->
+  <div class="card mb-3 existant-only" style="margin-top:18px;">
+    <div class="card-head">
+      <h3>Équipements existants</h3>
+      <span class="meta">chaudières, échangeurs… un ou plusieurs, chacun avec son usage</span>
+    </div>
+    <div class="card-body">
+      <div id="p2-equipements-liste"></div>
+      <button type="button" class="btn ghost sm mt-2" id="p2-equipement-ajouter">+ Ajouter un équipement</button>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Consommations (commun CH + ECS)                         -->
+  <!-- ====================================================== -->
+  <div class="card mb-3 existant-only" style="margin-top:18px;">
+    <div class="card-head">
+      <h3>Consommations</h3>
+      <span class="meta">énergie actuelle et historique — commun CH/ECS</span>
+    </div>
+    <div class="card-body">
+
+      <div class="subhead"><h4>Énergie actuelle</h4><span class="line"></span></div>
+      <p class="field-hint mb-2">Détermine l'unité attendue pour les consommations ci-dessous — synchronisé avec la fiche SST du Module 1.</p>
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <button type="button" class="tag tag-energie-rcu p2-energie-btn" data-energie="RCU">RCU</button>
+        <button type="button" class="tag tag-energie-gaz p2-energie-btn" data-energie="Gaz">Gaz</button>
+        <button type="button" class="tag tag-energie-fioul p2-energie-btn" data-energie="Fioul">Fioul</button>
+      </div>
+
+      <div id="p2-perimetre-subhead" class="subhead" style="display:none;"><h4>Périmètre de la consommation</h4><span class="line"></span></div>
+      <div id="p2-perimetre-block" style="display:none; margin-bottom:12px;">
+        <p class="field-hint mb-2" id="p2-perimetre-pills-note">Cette SST est de type CH+ECS — précisez ce que capte la consommation saisie ci-dessous.</p>
+        <p class="field-hint mb-2" id="p2-perimetre-auto-note" style="display:none;">Cette SST est de type CH+ECS — en gaz/fioul, la consommation couvre par défaut Chauffage + ECS (chaudière/cuve commune). Précisez uniquement la répartition ci-dessous.</p>
+        <div id="p2-perimetre-pills" style="display:flex; gap:8px; margin-bottom:10px;">
+          <button type="button" class="src-pill" id="p2-perimetre-ch" data-perimetre="ch" aria-pressed="true">Chauffage seul</button>
+          <button type="button" class="src-pill" id="p2-perimetre-ecs" data-perimetre="ecs" aria-pressed="false">ECS seul</button>
+          <button type="button" class="src-pill" id="p2-perimetre-ch-ecs" data-perimetre="ch_ecs" aria-pressed="false">Chauffage + ECS</button>
+        </div>
+        <div class="field-row cols-2" id="p2-repartition-row" style="display:none;">
+          <div class="field">
+            <span class="lbl">Part chauffage <span class="hint">%</span></span>
+            <input type="number" class="input" id="p2-pct-ch" min="0" max="100" step="1" value="70" />
+          </div>
+          <div class="field">
+            <span class="lbl">Part ECS <span class="hint">%</span></span>
+            <input type="number" class="input" id="p2-pct-ecs" min="0" max="100" step="1" value="30" disabled />
+          </div>
+        </div>
+      </div>
+
+      <div class="subhead"><h4>Consommations historiques</h4><span class="line"></span></div>
+      <p class="field-hint mb-2">Une carte par année de l'historique DJU (Module 0). Le relevé principal suit l'énergie actuelle (compteur d'énergie en MWh/an pour le RCU, compteur ou livraison en m³/an ou L/an pour le gaz/fioul) ; pour le gaz et le fioul, l'équivalent énergie en MWh/an est optionnel.</p>
+      <div id="p2-conso-annees"></div>
+
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
   <!-- Initialisation depuis l'état existant (projeté only)    -->
   <!-- ====================================================== -->
   <div class="card mb-3 projete-only reuse-init" style="margin-top:18px;">
@@ -993,131 +1054,9 @@
     <div class="card mb-3 existant-only">
       <div class="card-head">
         <h3>Données chauffage</h3>
-        <span class="meta">section requise pour méthodes M1, M2A, M2B, M4</span>
+        <span class="meta">section requise pour méthodes M2B, M4</span>
       </div>
       <div class="card-body">
-
-        <div class="subhead"><h4>Énergie actuelle</h4><span class="line"></span></div>
-        <p class="field-hint mb-2">Détermine l'unité attendue pour les consommations ci-dessous — synchronisé avec la fiche SST du Module 1.</p>
-        <div style="display:flex; gap:8px; margin-bottom:12px;">
-          <button type="button" class="tag tag-energie-rcu p2-energie-btn" data-energie="RCU">RCU</button>
-          <button type="button" class="tag tag-energie-gaz p2-energie-btn" data-energie="Gaz">Gaz</button>
-          <button type="button" class="tag tag-energie-fioul p2-energie-btn" data-energie="Fioul">Fioul</button>
-        </div>
-
-        <div id="p2-perimetre-subhead" class="subhead" style="display:none;"><h4>Périmètre de la consommation</h4><span class="line"></span></div>
-        <div id="p2-perimetre-block" style="display:none; margin-bottom:12px;">
-          <p class="field-hint mb-2">Cette SST est de type CH+ECS — précisez ce que capte la consommation saisie ci-dessous.</p>
-          <div style="display:flex; gap:8px; margin-bottom:10px;">
-            <button type="button" class="src-pill" id="p2-perimetre-ch" data-perimetre="ch" aria-pressed="true">Chauffage seul</button>
-            <button type="button" class="src-pill" id="p2-perimetre-ch-ecs" data-perimetre="ch_ecs" aria-pressed="false">Chauffage + ECS</button>
-          </div>
-          <div class="field-row cols-2" id="p2-repartition-row" style="display:none;">
-            <div class="field">
-              <span class="lbl">Part chauffage <span class="hint">%</span></span>
-              <input type="number" class="input" id="p2-pct-ch" min="0" max="100" step="1" value="70" />
-            </div>
-            <div class="field">
-              <span class="lbl">Part ECS <span class="hint">%</span></span>
-              <input type="number" class="input" id="p2-pct-ecs" min="0" max="100" step="1" value="30" disabled />
-            </div>
-          </div>
-        </div>
-
-        <div class="subhead"><h4>Consommations historiques</h4><span class="line"></span></div>
-        <div id="p2-conso-annees"></div>
-        <div class="field-row cols-2" style="margin-top:4px;">
-          <div class="field">
-            <span class="lbl">Rendement chaudière existante</span>
-            <input type="number" class="input" id="p2-rendement-chaudiere" min="0" max="1" step="0.01" value="0.88" />
-          </div>
-        </div>
-
-        <div class="subhead"><h4>Équipements existants</h4><span class="line"></span></div>
-        <div class="field-row cols-3">
-          <div class="field">
-            <span class="lbl opt">Nombre de générateurs</span>
-            <input type="number" class="input" id="p2-nb-generateurs" min="0" step="1" placeholder="ex : 1" />
-          </div>
-          <div class="field" id="p2-puissance-totale-field">
-            <span class="lbl opt">Puissance totale installée <span class="help-badge" id="p2-generateurs-info-badge" style="display:none;">ℹ</span></span>
-            <div class="help-content" id="p2-generateurs-info-content">En pratique, avec plusieurs générateurs, on ne cumule généralement pas 100 % de chaque puissance nominale : compter environ 75 % de la puissance totale installée pour l'estimation de la puissance réellement disponible.</div>
-            <div class="input-group">
-              <input type="number" class="input" id="p2-puissance-totale" min="0" step="1" placeholder="ex : 250" />
-              <span class="input-group-unit">kW</span>
-            </div>
-          </div>
-        </div>
-        <div id="p2-generateurs-unitaires"></div>
-
-        <div class="subhead"><h4>Départs chauffage secondaires</h4><span class="line"></span></div>
-
-        <div style="border:1px solid var(--hot-border); border-radius:var(--r-lg); padding:12px 14px; background:var(--hot-soft);">
-
-          <div class="subhead" style="margin-top:0;"><h4>Type de départ</h4><span class="line"></span></div>
-          <div class="field-row cols-2">
-            <div class="field">
-              <span class="lbl">Régulation</span>
-              <div class="input"><span>Constant</span><span style="margin-left:auto; color:var(--ink-4); font-size:9px;">▾</span></div>
-            </div>
-            <div class="field">
-              <span class="lbl">Émetteur</span>
-              <div class="input"><span>Radiateur</span><span style="margin-left:auto; color:var(--ink-4); font-size:9px;">▾</span></div>
-            </div>
-          </div>
-
-          <div class="subhead"><h4>Estimation du débit</h4><span class="line"></span></div>
-          <div class="field-row">
-            <div class="field">
-              <span class="lbl">DN canalisation</span>
-              <div class="input empty"><span class="ph">— choisir —</span></div>
-            </div>
-            <div class="field">
-              <span class="lbl opt">Débit J+20 <span class="hint">m³/h</span></span>
-              <div class="input empty"><span class="ph">non renseigné</span></div>
-            </div>
-            <div class="field">
-              <span class="lbl opt">Modèle pompe</span>
-              <div class="input empty"><span class="ph">ex. circulateur centrifuge DN25</span></div>
-            </div>
-            <div class="field">
-              <span class="lbl opt">Débit estimé pompe <span class="hint">m³/h</span></span>
-              <div class="input empty"><span class="ph">non renseigné</span></div>
-            </div>
-          </div>
-
-          <div class="field-row" style="margin-top:2px;">
-            <div class="field">
-              <span class="lbl">Débit retenu <span class="hint">m³/h</span></span>
-              <div class="input"><span>1,0</span><span class="unit">m³/h</span></div>
-            </div>
-            <div class="field"></div>
-            <div class="field"></div>
-            <div class="field"></div>
-          </div>
-
-          <div class="subhead"><h4>Loi d'eau</h4><span class="line"></span></div>
-          <div class="field-row">
-            <div class="field">
-              <span class="lbl">T° départ à T<sub>ext</sub> = −7 °C</span>
-              <div class="input"><span>60</span><span class="unit">°C</span></div>
-            </div>
-            <div class="field">
-              <span class="lbl">ΔT émetteur</span>
-              <div class="input"><span>20</span><span class="unit">°C</span></div>
-            </div>
-            <div class="field">
-              <span class="lbl">T° retour estimée</span>
-              <div class="input"><span>40</span><span class="unit">°C</span></div>
-            </div>
-            <div class="field">
-              <span class="lbl">Puissance départ (calculée)</span>
-              <div class="input" style="background:var(--accent-soft); border-color:#cfe0dd; color:var(--accent-ink); font-weight:600;"><span>23,3</span><span class="unit">kW</span></div>
-            </div>
-          </div>
-        </div>
-
-        <button class="btn sm" style="margin-top:10px;">+ Ajouter un départ chauffage</button>
 
         <div class="subhead"><h4>Puissance souscrite (référence contractuelle)</h4><span class="line"></span></div>
         <div class="field-row">
@@ -1128,6 +1067,11 @@
           <div class="field"></div>
           <div class="field"></div>
         </div>
+
+        <div class="subhead"><h4>Départs chauffage secondaires</h4><span class="line"></span></div>
+        <p class="field-hint mb-2">Un ou plusieurs départs secondaires — alimente la Méthode 2B.</p>
+        <div id="p2-departs-liste"></div>
+        <button type="button" class="btn ghost sm mt-2" id="p2-depart-ajouter">+ Ajouter un départ chauffage</button>
 
       </div>
     </div>
@@ -1274,37 +1218,6 @@
           <div class="field"></div>
         </div>
 
-        <div class="subhead"><h4>Énergie compteur d'énergie</h4><span class="line"></span></div>
-        <div class="field-row">
-          <div class="field">
-            <span class="lbl opt">Conso énergie ECS 2025 <span class="hint">MWh/an</span></span>
-            <div class="input empty"><span class="ph">si compteur énergie</span><span class="unit">MWh/an</span></div>
-          </div>
-          <div class="field">
-            <span class="lbl opt">Conso énergie ECS 2024 <span class="hint">MWh/an</span></span>
-            <div class="input empty"><span class="ph">non renseigné</span><span class="unit">MWh/an</span></div>
-          </div>
-          <div class="field"></div>
-          <div class="field"></div>
-        </div>
-
-        <div class="subhead"><h4>Équipements existants</h4><span class="line"></span></div>
-        <div class="field-row">
-          <div class="field">
-            <span class="lbl opt">Puissance production ECS</span>
-            <div class="input empty"><span class="ph">non renseigné</span><span class="unit">kW</span></div>
-          </div>
-          <div class="field">
-            <span class="lbl opt">Volume ballon existant</span>
-            <div class="input empty"><span class="ph">non renseigné</span><span class="unit">L</span></div>
-          </div>
-          <div class="field">
-            <span class="lbl opt">Année de mise en service</span>
-            <div class="input empty"><span class="ph">non renseigné</span></div>
-          </div>
-          <div class="field"></div>
-        </div>
-
         <div class="subhead"><h4>Puissance souscrite ECS</h4><span class="line"></span></div>
         <div class="field-row">
           <div class="field">
@@ -1393,7 +1306,7 @@
             </div>
             <div class="formula">P = E̅<sub>MWh</sub> × 1 000 / (365 × H<sub>pointe</sub>)<br>H<sub>pointe</sub> = 3 h <span class="hint">Mod.0</span></div>
             <div class="missing-msg">
-              <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span><span>Renseigner au moins une conso énergie ECS en MWh/an dans la section "Énergie compteur d'énergie".</span>
+              <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span><span>Renseigner au moins une consommation énergie en MWh/an dans la section "Consommations" (commune CH/ECS, au-dessus des onglets).</span>
             </div>
           </div>
 

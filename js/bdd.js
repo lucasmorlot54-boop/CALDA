@@ -30,6 +30,7 @@ const COLONNES_TABLEAU = [
   { key: 'sref',         libelle: 'Sref (m²)',      filtre: 'numerique' },
   { key: 'nbLogements',  libelle: 'Logements',      filtre: 'numerique' },
   { key: 'nature',       libelle: 'Nature',         filtre: 'enum' },
+  { key: 'energie',      libelle: 'Énergie',        filtre: 'enum' },
   { key: 'pCh',         libelle: 'P Ut. CH (kW)',    filtre: 'numerique' },
   { key: 'pEcs',        libelle: 'P Ut. ECS (kW)',   filtre: 'numerique' },
   { key: 'pTotal',       libelle: 'P Ut. totale (kW)', filtre: 'numerique' },
@@ -565,6 +566,7 @@ function _extraireValeur(s, colonne) {
     case 'sref':         return b.sref;
     case 'nbLogements':  return b.nbLogements;
     case 'nature':       return s.nature ?? '';
+    case 'energie':      return etat === 'projete' ? 'RCU' : (b.energieActuelle ?? '');
     case 'pCh': {
       const chR = parseFloat(d2.chRetenu);
       const mCh = parseFloat(d2.majorationCh ?? 0);
@@ -809,7 +811,7 @@ function rendreTableau() {
   if (typeof updateHypEcsVisibility === 'function') updateHypEcsVisibility();
 
   if (sousStations.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="12">
+    tbody.innerHTML = `<tr><td colspan="13">
       <div class="empty-state">
         Aucune sous-station enregistrée.<br>
         Cliquez sur <strong>+ Nouvelle SST</strong> pour commencer.
@@ -823,7 +825,7 @@ function rendreTableau() {
   const triees    = trierSousStations(filtrees);
 
   if (triees.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="12">
+    tbody.innerHTML = `<tr><td colspan="13">
       <div class="empty-state">Aucun résultat pour ces filtres.</div>
     </td></tr>`;
     _majCompteur(0, sousStations.length);
@@ -858,6 +860,9 @@ function rendreTableau() {
     const pChPart  = b.typeService === 'ECS' ? null : pCh;
     const pEcsPart = b.typeService === 'CH'  ? null : pEcs;
     const pTotal   = (pChPart == null && pEcsPart == null) ? null : (pChPart ?? 0) + (pEcsPart ?? 0);
+    // Projeté : la SST est par définition raccordée au RCU (voir M2, renderBandeIdentite) —
+    // l'énergie actuelle (Gaz/Fioul/RCU) ne se saisit que côté Existant.
+    const energie = etatEffectif === 'projete' ? 'RCU' : (b.energieActuelle || null);
     const html = `
     <tr class="${etatExiste ? 'sst-row' : 'sst-row sst-row-fallback'}" onclick="allerVersM2(${i})" title="Cliquer pour ouvrir dans Module 2">
       <td>
@@ -871,6 +876,7 @@ function rendreTableau() {
       <td>${b.sref != null ? b.sref.toLocaleString('fr-FR') : muted('—')}</td>
       <td>${b.nbLogements ?? muted('—')}</td>
       <td>${s.nature  ? badgeNature(s.nature)   : muted('—')}</td>
+      <td>${energie   ? badgeEnergie(energie)   : muted('—')}</td>
       <td style="text-align:center;font-weight:600;color:var(--hot-ink)">${pChPart  != null ? pChPart  : muted('—')}</td>
       <td style="text-align:center;font-weight:600;color:var(--cold-ink)">${pEcsPart != null ? pEcsPart : muted('—')}</td>
       <td style="text-align:center;font-weight:700;color:var(--accent-ink)">${pTotal != null ? pTotal : muted('—')}</td>
@@ -899,6 +905,7 @@ function rendreTableau() {
       <td>${sumSref.toLocaleString('fr-FR')}</td>
       <td>${sumNbLogements.toLocaleString('fr-FR')}</td>
       <td></td>
+      <td></td>
       <td style="text-align:center;color:var(--hot-ink)">${Math.round(sumPCh)}</td>
       <td style="text-align:center;color:var(--cold-ink)">${Math.round(sumPEcs)}</td>
       <td style="text-align:center;color:var(--accent-ink)">${Math.round(sumPTotal)}</td>
@@ -906,7 +913,7 @@ function rendreTableau() {
     </tr>` : '';
 
   const separateurHtml = (valides.length && invalides.length)
-    ? `<tr class="sst-separator"><td colspan="12"><div class="sst-separator-line">SST sans donnée pour l'état « ${etatChoisi === 'existant' ? 'Existant' : 'Projeté'} »</div></td></tr>`
+    ? `<tr class="sst-separator"><td colspan="13"><div class="sst-separator-line">SST sans donnée pour l'état « ${etatChoisi === 'existant' ? 'Existant' : 'Projeté'} »</div></td></tr>`
     : '';
 
   tbody.innerHTML = validesHtml + sommeHtml + separateurHtml + invalidesHtml;
